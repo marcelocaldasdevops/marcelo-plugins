@@ -31,6 +31,7 @@ O catálogo mantém manifestos sincronizados para cada ecossistema:
 <!-- PLUGINS_TABLE_START -->
 | Plugin | Descrição | Versão | Diretório |
 | :--- | :--- | :--- | :--- |
+| **[Documentação de Sistema com Playwright](https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/documentacao-sistema-playwright)** | Gera documentação técnica completa de sistemas web com menu navegável, sumário tabular, screenshots full page e inventário de telas usando Playwright. | `1.0.0` | [`plugins/documentacao-sistema-playwright`](./plugins/documentacao-sistema-playwright) |
 | **[Vercel Agent Skills](https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/vercel-agent-skills)** | Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design. | `1.0.0` | [`plugins/vercel-agent-skills`](./plugins/vercel-agent-skills) |
 <!-- PLUGINS_TABLE_END -->
 

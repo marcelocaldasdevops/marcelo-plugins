@@ -12,6 +12,24 @@
   },
   "plugins": [
     {
+      "name": "documentacao-sistema-playwright",
+      "displayName": "Documentação de Sistema com Playwright",
+      "description": "Gera documentação técnica completa de sistemas web com menu navegável, sumário tabular, screenshots full page e inventário de telas usando Playwright.",
+      "version": "1.0.0",
+      "category": "developer-tools",
+      "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/documentacao-sistema-playwright",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/documentacao-sistema-playwright",
+      "keywords": [
+        "playwright",
+        "documentation",
+        "screenshots",
+        "menu",
+        "summary",
+        "web"
+      ],
+      "source": "./plugins/documentacao-sistema-playwright"
+    },
+    {
       "name": "vercel-agent-skills",
       "displayName": "Vercel Agent Skills",
       "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design.",

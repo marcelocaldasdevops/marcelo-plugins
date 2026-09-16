@@ -1,0 +1,24 @@
+{
+  "name": "documentacao-sistema-playwright",
+  "displayName": "Documentação de Sistema com Playwright",
+  "version": "1.0.0",
+  "description": "Gera documentação técnica completa de sistemas web com menu navegável, sumário tabular, screenshots full page e inventário de telas usando Playwright.",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  },
+  "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/documentacao-sistema-playwright",
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins",
+  "license": "MIT",
+  "category": "developer-tools",
+  "tags": [
+    "playwright",
+    "documentation",
+    "screenshots",
+    "menu",
+    "summary",
+    "web"
+  ],
+  "skills": "./skills/",
+  "rules": "./rules/"
+}
