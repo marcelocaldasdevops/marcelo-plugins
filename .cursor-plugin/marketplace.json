@@ -8,5 +8,11 @@
     "description": "Marketplace de plugins para Cursor por Marcelo Caldas.",
     "version": "1.0.0"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "vercel-agent-skills",
+      "source": "./plugins/vercel-agent-skills",
+      "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design."
+    }
+  ]
 }

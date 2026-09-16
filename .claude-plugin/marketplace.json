@@ -11,5 +11,26 @@
     "version": "1.0.0",
     "pluginRoot": "plugins"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "vercel-agent-skills",
+      "source": "./plugins/vercel-agent-skills",
+      "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Marcelo Caldas",
+        "url": "https://github.com/marcelocaldasdevops"
+      },
+      "category": "developer-tools",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/vercel-agent-skills",
+      "keywords": [
+        "vercel",
+        "nextjs",
+        "react",
+        "deploy",
+        "performance",
+        "skills"
+      ]
+    }
+  ]
 }

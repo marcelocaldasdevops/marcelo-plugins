@@ -1,0 +1,9 @@
+{
+  "name": "vercel-agent-skills",
+  "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  }
+}

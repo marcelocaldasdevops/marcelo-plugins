@@ -29,7 +29,9 @@ O catálogo mantém manifestos sincronizados para cada ecossistema:
 ## 📦 Plugins Disponíveis
 
 <!-- PLUGINS_TABLE_START -->
-*Nenhum plugin registrado ainda. Crie seu primeiro plugin com `./scripts/new-plugin.sh`.*
+| Plugin | Descrição | Versão | Diretório |
+| :--- | :--- | :--- | :--- |
+| **[Vercel Agent Skills](https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/vercel-agent-skills)** | Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design. | `1.0.0` | [`plugins/vercel-agent-skills`](./plugins/vercel-agent-skills) |
 <!-- PLUGINS_TABLE_END -->
 
 ---
