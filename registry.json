@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "marcelo-plugins",
+  "displayName": "Marcelo Plugins Marketplace",
+  "description": "Marketplace universal de plugins, extensões, skills, regras e MCPs para Antigravity, Cursor, Claude Code, Bithub e outros agentes de IA.",
+  "owner": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  },
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins",
+  "version": "1.0.0",
+  "plugins": []
+}

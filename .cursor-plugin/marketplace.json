@@ -1,0 +1,12 @@
+{
+  "name": "marcelo-plugins",
+  "owner": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  },
+  "metadata": {
+    "description": "Marketplace de plugins para Cursor por Marcelo Caldas.",
+    "version": "1.0.0"
+  },
+  "plugins": []
+}

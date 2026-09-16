@@ -1,0 +1,13 @@
+{
+  "name": "{{PLUGIN_NAME}}",
+  "displayName": "{{PLUGIN_DISPLAY_NAME}}",
+  "description": "{{PLUGIN_DESCRIPTION}}",
+  "version": "1.0.0",
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/{{PLUGIN_NAME}}",
+  "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/{{PLUGIN_NAME}}",
+  "keywords": [
+    "{{PLUGIN_NAME}}"
+  ],
+  "skills": "./skills",
+  "rules": "./rules"
+}

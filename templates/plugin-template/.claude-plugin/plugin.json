@@ -1,0 +1,16 @@
+{
+  "name": "{{PLUGIN_NAME}}",
+  "version": "1.0.0",
+  "description": "{{PLUGIN_DESCRIPTION}}",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  },
+  "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/{{PLUGIN_NAME}}",
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins",
+  "license": "MIT",
+  "keywords": [
+    "{{PLUGIN_NAME}}"
+  ],
+  "skills": "./skills/"
+}

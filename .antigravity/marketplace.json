@@ -1,0 +1,14 @@
+{
+  "name": "marcelo-plugins",
+  "description": "Marketplace público de plugins para Google Antigravity e Gemini por Marcelo Caldas.",
+  "owner": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  },
+  "metadata": {
+    "description": "Marketplace de plugins por Marcelo Caldas.",
+    "version": "1.0.0",
+    "pluginRoot": "plugins"
+  },
+  "plugins": []
+}
