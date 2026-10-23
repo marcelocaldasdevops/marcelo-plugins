@@ -11,6 +11,28 @@
   "version": "1.0.0",
   "plugins": [
     {
+      "name": "diagram-design",
+      "displayName": "Diagram Design (Arquitetura & Fluxos)",
+      "description": "Gera diagramas arquiteturais, fluxogramas, sequências e modelos em arquivos autocontidos HTML + SVG no padrão da sua marca. 45 tipos de diagramas, sem Mermaid clichê e com importação de Draw.io, Mermaid e Excalidraw.",
+      "version": "1.0.0",
+      "category": "developer-tools",
+      "keywords": [
+        "diagrams",
+        "architecture",
+        "svg",
+        "flowchart",
+        "visualization",
+        "editorial",
+        "drawio",
+        "mermaid",
+        "excalidraw"
+      ],
+      "dir": "diagram-design",
+      "source": "./plugins/diagram-design",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/diagram-design",
+      "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
+    },
+    {
       "name": "documentacao-sistema-playwright",
       "displayName": "Documentação de Sistema com Playwright",
       "description": "Gera documentação técnica completa de sistemas web com menu navegável, sumário tabular, screenshots full page e inventário de telas usando Playwright.",

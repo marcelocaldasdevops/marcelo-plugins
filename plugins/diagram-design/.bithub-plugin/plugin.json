@@ -1,0 +1,22 @@
+{
+  "name": "diagram-design",
+  "displayName": "Diagram Design (Arquitetura & Fluxos)",
+  "description": "Gera diagramas arquiteturais, fluxogramas, sequências e modelos em arquivos autocontidos HTML + SVG no padrão da sua marca. 45 tipos de diagramas, sem Mermaid clichê e com importação de Draw.io, Mermaid e Excalidraw.",
+  "version": "1.0.0",
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/diagram-design",
+  "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/diagram-design",
+  "category": "developer-tools",
+  "keywords": [
+    "diagrams",
+    "architecture",
+    "svg",
+    "flowchart",
+    "visualization",
+    "editorial",
+    "drawio",
+    "mermaid",
+    "excalidraw"
+  ],
+  "skills": "./skills",
+  "rules": "./rules"
+}
