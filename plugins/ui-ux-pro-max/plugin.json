@@ -1,0 +1,10 @@
+{
+  "name": "ui-ux-pro-max",
+  "displayName": "UI/UX Pro Max (Design Intelligence)",
+  "description": "Inteligência de design UI/UX para web, mobile e desktop com 79 estilos, 192 paletas, 74 fontes, 119 diretrizes de UX, 25 gráficos e suporte a 22 stacks (React, Next.js, Vue, Nuxt, Svelte, Tailwind, shadcn/ui, SwiftUI, Flutter, etc.). Inclui gerador de design systems e auditoria de acessibilidade.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  }
+}

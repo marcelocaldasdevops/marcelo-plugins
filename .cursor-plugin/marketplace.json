@@ -35,6 +35,11 @@
       "description": "Faz o agente de IA pensar como o dev sênior mais pragmático: o melhor código é aquele que você nunca precisou escrever (YAGNI, stdlib first e menor diff funcional)."
     },
     {
+      "name": "ui-ux-pro-max",
+      "source": "./plugins/ui-ux-pro-max",
+      "description": "Inteligência de design UI/UX para web, mobile e desktop com 79 estilos, 192 paletas, 74 fontes, 119 diretrizes de UX, 25 gráficos e suporte a 22 stacks (React, Next.js, Vue, Nuxt, Svelte, Tailwind, shadcn/ui, SwiftUI, Flutter, etc.). Inclui gerador de design systems e auditoria de acessibilidade."
+    },
+    {
       "name": "vercel-agent-skills",
       "source": "./plugins/vercel-agent-skills",
       "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design."

@@ -112,6 +112,34 @@
       "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
     },
     {
+      "name": "ui-ux-pro-max",
+      "displayName": "UI/UX Pro Max (Design Intelligence)",
+      "description": "Inteligência de design UI/UX para web, mobile e desktop com 79 estilos, 192 paletas, 74 fontes, 119 diretrizes de UX, 25 gráficos e suporte a 22 stacks (React, Next.js, Vue, Nuxt, Svelte, Tailwind, shadcn/ui, SwiftUI, Flutter, etc.). Inclui gerador de design systems e auditoria de acessibilidade.",
+      "version": "1.0.0",
+      "category": "developer-tools",
+      "keywords": [
+        "ui",
+        "ux",
+        "design",
+        "design-system",
+        "color-palette",
+        "typography",
+        "accessibility",
+        "tailwind",
+        "shadcn",
+        "react",
+        "nextjs",
+        "vue",
+        "svelte",
+        "swiftui",
+        "flutter"
+      ],
+      "dir": "ui-ux-pro-max",
+      "source": "./plugins/ui-ux-pro-max",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/ui-ux-pro-max",
+      "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
+    },
+    {
       "name": "vercel-agent-skills",
       "displayName": "Vercel Agent Skills",
       "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design.",

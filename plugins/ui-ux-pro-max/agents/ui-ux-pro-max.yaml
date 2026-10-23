@@ -1,0 +1,13 @@
+interface:
+  display_name: "UI/UX Pro Max"
+  short_description: "UI/UX design intelligence and design system generator"
+  default_prompts:
+    - "Generate a design system for a fintech dashboard"
+    - "Search color palettes and font pairings for a luxury wellness brand"
+    - "Recommend UI styles and layout patterns for a SaaS analytics page"
+    - "Provide UI best practices and Tailwind classes for modern dashboards"
+
+policy:
+  allow_implicit_invocation: true
+
+dependencies: []

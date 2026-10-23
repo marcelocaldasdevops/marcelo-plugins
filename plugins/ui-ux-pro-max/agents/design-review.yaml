@@ -1,0 +1,12 @@
+interface:
+  display_name: "Design Reviewer"
+  short_description: "7-phase UI/UX, accessibility (WCAG AA) and responsive auditor"
+  default_prompts:
+    - "Audit the UI and accessibility of http://localhost:3000"
+    - "Review the mobile responsiveness and contrast of our checkout page"
+    - "Perform a 7-phase design review on index.html"
+
+policy:
+  allow_implicit_invocation: true
+
+dependencies: []
