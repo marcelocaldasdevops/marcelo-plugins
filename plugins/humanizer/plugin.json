@@ -1,0 +1,10 @@
+{
+  "name": "humanizer",
+  "displayName": "Humanizer (Escrita Humana Anti-IA)",
+  "description": "Remove vícios e padrões artificiais de escrita de IA, tornando o texto natural e autêntico sem alterar o sentido original. Baseado nos 26 padrões do Wikipedia Signs of AI writing.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  }
+}

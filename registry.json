@@ -51,6 +51,25 @@
       "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
     },
     {
+      "name": "humanizer",
+      "displayName": "Humanizer (Escrita Humana Anti-IA)",
+      "description": "Remove vícios e padrões artificiais de escrita de IA, tornando o texto natural e autêntico sem alterar o sentido original. Baseado nos 26 padrões do Wikipedia Signs of AI writing.",
+      "version": "1.0.0",
+      "category": "productivity",
+      "keywords": [
+        "humanizer",
+        "writing",
+        "prose",
+        "anti-ai-slop",
+        "copywriting",
+        "plain-language"
+      ],
+      "dir": "humanizer",
+      "source": "./plugins/humanizer",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/humanizer",
+      "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
+    },
+    {
       "name": "ponytail",
       "displayName": "Ponytail (Lazy Senior Dev)",
       "description": "Faz o agente de IA pensar como o dev sênior mais pragmático: o melhor código é aquele que você nunca precisou escrever (YAGNI, stdlib first e menor diff funcional).",

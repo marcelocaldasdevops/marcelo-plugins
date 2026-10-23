@@ -1,0 +1,19 @@
+{
+  "name": "humanizer",
+  "displayName": "Humanizer (Escrita Humana Anti-IA)",
+  "description": "Remove vícios e padrões artificiais de escrita de IA, tornando o texto natural e autêntico sem alterar o sentido original. Baseado nos 26 padrões do Wikipedia Signs of AI writing.",
+  "version": "1.0.0",
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/humanizer",
+  "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/humanizer",
+  "category": "productivity",
+  "keywords": [
+    "humanizer",
+    "writing",
+    "prose",
+    "anti-ai-slop",
+    "copywriting",
+    "plain-language"
+  ],
+  "skills": "./skills",
+  "rules": "./rules"
+}
