@@ -1,0 +1,25 @@
+{
+  "name": "ponytail",
+  "displayName": "Ponytail (Lazy Senior Dev)",
+  "version": "1.0.0",
+  "description": "Faz o agente de IA pensar como o dev sênior mais pragmático: o melhor código é aquele que você nunca precisou escrever (YAGNI, stdlib first e menor diff funcional).",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  },
+  "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/ponytail",
+  "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins",
+  "license": "MIT",
+  "category": "developer-tools",
+  "tags": [
+    "ponytail",
+    "yagni",
+    "lazy-senior-dev",
+    "clean-code",
+    "refactoring",
+    "minimalist",
+    "developer-tools"
+  ],
+  "skills": "./skills/",
+  "rules": "./rules/"
+}

@@ -31,6 +31,26 @@
       "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
     },
     {
+      "name": "ponytail",
+      "displayName": "Ponytail (Lazy Senior Dev)",
+      "description": "Faz o agente de IA pensar como o dev sênior mais pragmático: o melhor código é aquele que você nunca precisou escrever (YAGNI, stdlib first e menor diff funcional).",
+      "version": "1.0.0",
+      "category": "developer-tools",
+      "keywords": [
+        "ponytail",
+        "yagni",
+        "lazy-senior-dev",
+        "clean-code",
+        "refactoring",
+        "minimalist",
+        "developer-tools"
+      ],
+      "dir": "ponytail",
+      "source": "./plugins/ponytail",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/ponytail",
+      "repository": "https://github.com/marcelocaldasdevops/marcelo-plugins"
+    },
+    {
       "name": "vercel-agent-skills",
       "displayName": "Vercel Agent Skills",
       "description": "Coleção oficial de skills da Vercel para agentes de IA: deploy, otimização, boas práticas de React, Next.js e web design.",
