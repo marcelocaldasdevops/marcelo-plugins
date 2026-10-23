@@ -15,6 +15,11 @@
       "description": "Gera documentação técnica completa de sistemas web com menu navegável, sumário tabular, screenshots full page e inventário de telas usando Playwright."
     },
     {
+      "name": "hallmark",
+      "source": "./plugins/hallmark",
+      "description": "Design skill para websites e interfaces que recusam parecer geradas por IA. 48 materiais/temas curados, anti-AI-slop linter, tokens OKLCH e tipografia profissional."
+    },
+    {
       "name": "ponytail",
       "source": "./plugins/ponytail",
       "description": "Faz o agente de IA pensar como o dev sênior mais pragmático: o melhor código é aquele que você nunca precisou escrever (YAGNI, stdlib first e menor diff funcional)."

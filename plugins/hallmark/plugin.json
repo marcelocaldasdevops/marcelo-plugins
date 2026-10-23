@@ -1,0 +1,10 @@
+{
+  "name": "hallmark",
+  "displayName": "Hallmark (Anti-AI-Slop Design)",
+  "description": "Design skill para websites e interfaces que recusam parecer geradas por IA. 48 materiais/temas curados, anti-AI-slop linter, tokens OKLCH e tipografia profissional.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Marcelo Caldas",
+    "url": "https://github.com/marcelocaldasdevops"
+  }
+}

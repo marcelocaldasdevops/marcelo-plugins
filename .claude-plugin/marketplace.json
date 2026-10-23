@@ -33,6 +33,28 @@
       ]
     },
     {
+      "name": "hallmark",
+      "source": "./plugins/hallmark",
+      "description": "Design skill para websites e interfaces que recusam parecer geradas por IA. 48 materiais/temas curados, anti-AI-slop linter, tokens OKLCH e tipografia profissional.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Marcelo Caldas",
+        "url": "https://github.com/marcelocaldasdevops"
+      },
+      "category": "design",
+      "homepage": "https://github.com/marcelocaldasdevops/marcelo-plugins/tree/main/plugins/hallmark",
+      "keywords": [
+        "hallmark",
+        "design",
+        "ui",
+        "landing-page",
+        "redesign",
+        "anti-ai-slop",
+        "themes",
+        "frontend"
+      ]
+    },
+    {
       "name": "ponytail",
       "source": "./plugins/ponytail",
       "description": "Faz o agente de IA pensar como o dev sênior mais pragmático: o melhor código é aquele que você nunca precisou escrever (YAGNI, stdlib first e menor diff funcional).",
