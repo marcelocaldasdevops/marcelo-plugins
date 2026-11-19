@@ -29,3 +29,9 @@ tmp/
 *.tmp
 .idea/
 .vscode/
+
+# Instalações locais de plugins/agentes na raiz do workspace
+/.agents/
+/.claude/
+/.cursor/
+/AGENTS.md
