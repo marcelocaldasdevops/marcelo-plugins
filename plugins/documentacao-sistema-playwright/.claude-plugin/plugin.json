@@ -1,7 +1,7 @@
 {
   "name": "documentacao-sistema-playwright",
-  "version": "1.1.0",
-  "description": "Gera documentação técnica completa de sistemas web e executa testes E2E de branches/implementações com Playwright, prints padronizados, monitoramento de erros e relatórios em Markdown.",
+  "version": "1.2.0",
+  "description": "Gera documentação técnica completa de sistemas web, executa testes E2E de branches/implementações e exporta relatórios editoriais em PDF A4 usando Playwright.",
   "author": {
     "name": "Marcelo Caldas",
     "url": "https://github.com/marcelocaldasdevops"
@@ -17,6 +17,8 @@
     "qa",
     "gherkin",
     "bug-report",
+    "pdf",
+    "report",
     "screenshots",
     "menu",
     "summary",

@@ -209,7 +209,15 @@ node plugins/documentacao-sistema-playwright/skills/documentacao-sistema-playwri
 - `--out <dir>`: Diretório de destino (padrão: `./docs-sistema`).
 - `--routes <r1,r2>`: Lista explícita de rotas separadas por vírgula (opcional).
 - `--title <titulo>`: Título do documento principal.
+- `--storage-state <arquivo>`: Sessão autenticada/cookies do Playwright (opcional).
 - `--headless`: Executa em modo sem interface gráfica (padrão: `true`).
+- `--pdf`: Opcionalmente exporta também `./docs-sistema/documentacao-sistema.pdf` via `relatorio-pdf-playwright` / [lib/pdf-renderer.mjs](../../lib/pdf-renderer.mjs).
+
+---
+
+## 📄 Exportação Opcional em PDF
+
+Caso o usuário solicite a documentação também em PDF (ou invoque `/relatorio-pdf` depois), acione a skill `relatorio-pdf-playwright` sobre `./docs-sistema/index.md` (ou passe `--pdf` ao `doc-runner.mjs`) para gerar `./docs-sistema/documentacao-sistema.pdf` com capa institucional, cards de inventário e screenshots incorporados.
 
 ---
 

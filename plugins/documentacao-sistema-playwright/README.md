@@ -1,54 +1,57 @@
-# Documentação de Sistema e Testes E2E com Playwright 📸🧪
+# Documentação de Sistema, Testes E2E e Relatórios PDF com Playwright 📸🧪📄
 
-Plugin universal para **Google Antigravity**, **Cursor**, **Claude Code**, **Bithub** e outros agentes de IA, focado na geração automatizada de **documentação técnica de sistemas web** e na execução de **testes E2E com relatório completo de evidências** usando Playwright.
+Plugin universal para **Google Antigravity**, **Cursor**, **Claude Code**, **Bithub** e outros agentes de IA, focado em **documentação técnica de sistemas web**, **testes E2E com evidências** e **exportação editorial em PDF A4** usando Playwright — sem dependências npm externas.
 
 ---
 
 ## 🧩 Skills Incluídas
 
-| Skill | Finalidade | Saída Padrão |
-| :--- | :--- | :--- |
-| **`documentacao-sistema-playwright`** | Mapeia telas, captura screenshots full page, extrai elementos interativos e gera catálogo navegável. | `./docs-sistema/index.md` |
-| **`testes-e2e-playwright`** | Analisa o diff da branch atual (ou implementação informada), cria cenários Dado/Quando/Então, executa passo a passo no navegador monitorando console/rede (`4xx`/`5xx`) e gera relatório de testes com diagnóstico de erros. | `./docs/testes/<slug-da-branch>/relatorio-testes.md` |
+| Skill | Finalidade | Acionamento | Saída Padrão |
+| :--- | :--- | :--- | :--- |
+| **`documentacao-sistema-playwright`** | Mapeia telas, captura screenshots full page, extrai elementos interativos e gera catálogo navegável. | Sob demanda (`/doc-sistema`) | `./docs-sistema/index.md` *(PDF opcional via `--pdf` ou `/relatorio-pdf`)* |
+| **`testes-e2e-playwright`** | Analisa o diff da branch atual (ou implementação informada), cria cenários Dado/Quando/Então, executa passo a passo monitorando console/rede (`4xx`/`5xx`) e gera relatório completo. | Sob demanda (`/testes-e2e`) | `./docs/testes/<slug-da-branch>/relatorio-testes.md` + **`relatorio-testes.pdf` (automático)** |
+| **`relatorio-pdf-playwright`** | Converte relatórios de testes E2E, documentações ou qualquer Markdown com prints em PDF A4 (tema **Executivo Clean**). | **Automático** pós-E2E ou sob demanda (`/relatorio-pdf`) | `./docs/testes/<slug>/relatorio-testes.pdf` ou `./docs-sistema/documentacao-sistema.pdf` |
 
 ---
 
 ## ✨ Recursos
 
 ### Documentação de Sistemas (`documentacao-sistema-playwright`)
-- **Menu Navegável**: Índice com âncoras internas para navegação instantânea.
-- **Sumário Executivo Tabular**: Tabela resumo com número, nome da tela, rota, elementos chave e descrição curta.
-- **Screenshots Full Page**: Capturas completas em alta resolução salvas em `./docs-sistema/screenshots/`.
-- **Inventário Detalhado**: Extração semântica de formulários, campos de entrada, botões, tabelas, filtros e modais.
-- **Descoberta Dupla de Rotas**: Mapeamento tanto por análise estática do código (routers) quanto por navegação dinâmica no DOM (`<nav>`, `aside`, headers).
+- **Menu Navegável e Sumário Executivo**: Índice com âncoras internas e tabela resumo de telas.
+- **Screenshots Full Page + Inventário**: Capturas HD em `./docs-sistema/screenshots/` e extração semântica de campos, botões, tabelas e filtros.
+- **Descoberta Dupla de Rotas**: Análise estática do código (routers) + varredura dinâmica no DOM (`<nav>`, `aside`, headers).
+- **Exportação PDF Opcional**: Suporte à flag `--pdf` no `doc-runner.mjs` ou conversão posterior via `/relatorio-pdf`.
 
 ### Testes E2E de Branch / Implementação (`testes-e2e-playwright`)
-- **Escopo Inteligente**: Analisa o diff da branch atual em relação à branch base (`main`/`master`/`develop`) ou uma implementação indicada na chamada.
-- **Cenários Dado/Quando/Então**: Cobertura estruturada de caminho feliz, validações e casos de erro relevantes.
-- **Execução Passo a Passo + Prints Padronizados**: Captura estado inicial, ações, resultado final e erros em `./docs/testes/<slug-da-branch>/screenshots/cenario-XX-passo-YY.png` (e `-erro.png`).
-- **Monitoramento Completo de Erros**: Audita console (`console.error`), exceções não tratadas (`pageerror`), respostas HTTP `4xx`/`5xx`, falhas de rede e divergências comportamentais.
-- **Relatório com Diagnóstico**: Documento `relatorio-testes.md` com resumo da branch, status ✅/❌ por cenário, prints incorporados, causa provável, sugestão de correção e resumo executivo final.
+- **Escopo Inteligente**: Analisa o diff da branch atual vs. branch base (`main`/`master`/`develop`) ou uma implementação indicada na chamada.
+- **Cenários Dado/Quando/Então**: Cobertura de caminho feliz, validações e casos de erro relevantes.
+- **Prints Padronizados + Monitoramento de Erros**: Salva `cenario-XX-passo-YY.png` (e `-erro.png`), monitora `console.error`, `pageerror`, HTTP `4xx`/`5xx`, falhas de rede e documenta causa provável + sugestão de correção.
+- **PDF Automático ao Concluir**: Ao terminar `relatorio-testes.md`, aciona automaticamente `relatorio-pdf-playwright` para gerar `relatorio-testes.pdf` na mesma pasta (`--no-pdf` para desativar no CLI).
+
+### Exportação Editorial em PDF (`relatorio-pdf-playwright`)
+- **Zero Dependências Externas**: Utiliza `page.pdf()` nativo do Chromium do Playwright em [lib/pdf-renderer.mjs](./lib/pdf-renderer.mjs).
+- **Tema Executivo Clean (A4)**: Cabeçalho institucional escuro, barra de metadados, cards executivos de KPI (`evidencias.json` / `inventory.json`), badges vetoriais SVG (sem emoji quebrado em Linux), tabelas com `<thead>` repetido e `break-inside: avoid` em prints e diagnósticos.
+- **Autocontido + Fallback Resiliente**: Incorpora imagens locais em Base64 com proteção anti *path-traversal*, aplica `sanitizeSensitiveText()` e gera fallback `.print.html` caso o binário do Chromium não esteja disponível no CLI.
 
 ### Base Compartilhada do Playwright
-- **Configuração Reutilizada**: Ambas as skills compartilham o mesmo módulo [lib/playwright-config.mjs](./lib/playwright-config.mjs) (viewport `1440×900`, `networkidle`, timeouts, `storageState` e sanitização de dados sensíveis) e o mesmo padrão de ferramentas MCP do Playwright.
-- **Compatibilidade Universal**: Funciona em qualquer stack web (Next.js, React, Vue, Angular, Django, Rails, Laravel, etc.).
+- **Módulos Reutilizáveis em `lib/`**: [lib/playwright-config.mjs](./lib/playwright-config.mjs) (sessão Chromium `1440×900`, `networkidle`, timeouts, `storageState`, sanitização e telemetria) e [lib/pdf-renderer.mjs](./lib/pdf-renderer.mjs) (motor editorial HTML5 + PDF).
+- **Compatibilidade Universal**: Next.js, React, Vue, Angular, Svelte, Django, Rails, Laravel, Spring Boot e qualquer aplicação web.
 
 ---
 
 ## ⌨️ Comandos Slash
-- **`/doc-sistema`**: Aciona a skill `documentacao-sistema-playwright` para documentar telas do sistema.
-- **`/testes-e2e`**: Aciona a skill `testes-e2e-playwright` para testar a branch atual ou uma implementação específica e gerar `relatorio-testes.md`.
+- **`/doc-sistema`**: Documenta telas do sistema em `./docs-sistema/index.md` (PDF opcional se solicitado).
+- **`/testes-e2e`**: Executa testes E2E da branch atual ou implementação informada e gera `relatorio-testes.md` + `relatorio-testes.pdf` automaticamente.
+- **`/relatorio-pdf`**: Gera ou regera o PDF A4 de qualquer relatório de testes, documentação ou Markdown com prints sem reexecutar os testes.
 
 ---
 
 ## 🚀 Como Usar
 
 ### 1. Pelo Agente de IA (Antigravity, Cursor, Claude Code)
-Para documentar o sistema:
-> *"Documente o sistema rodando em http://localhost:3000 gerando o menu e os prints das telas."*
-
-Para executar testes E2E da branch atual ou de uma feature:
-> *"Execute os testes E2E das alterações desta branch em http://localhost:3000 e gere o relatório com prints."*
+- **Documentação:** *"Documente o sistema rodando em http://localhost:3000 gerando o menu e os prints das telas."*
+- **Testes E2E (+ PDF automático):** *"Execute os testes E2E das alterações desta branch em http://localhost:3000 e gere o relatório com prints."*
+- **Exportar PDF avulso:** *"Gere o PDF da documentação em ./docs-sistema/index.md."* ou *"Regere o PDF de ./docs/testes/feat-login/relatorio-testes.md."*
 
 ### 2. Pelo Terminal com os Scripts Automatizados
 
@@ -56,15 +59,22 @@ Para executar testes E2E da branch atual ou de uma feature:
 ```bash
 node plugins/documentacao-sistema-playwright/skills/documentacao-sistema-playwright/scripts/doc-runner.mjs \
   --url "http://localhost:3000" \
-  --out "./docs-sistema"
+  --out "./docs-sistema" \
+  --pdf
 ```
 
-**Testes E2E (`e2e-runner.mjs`):**
+**Testes E2E (`e2e-runner.mjs` — gera PDF por padrão; passe `--no-pdf` para pular):**
 ```bash
 node plugins/documentacao-sistema-playwright/skills/testes-e2e-playwright/scripts/e2e-runner.mjs \
   --url "http://localhost:3000" \
   --plan "./plano-e2e.json" \
   --out "./docs/testes/minha-branch"
+```
+
+**Exportação PDF Standalone (`pdf-runner.mjs`):**
+```bash
+node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
+  --input "./docs/testes/minha-branch/relatorio-testes.md"
 ```
 
 ---

@@ -16,6 +16,7 @@ import {
   parseCliArgs,
   slugify,
 } from '../../../lib/playwright-config.mjs';
+import { renderMarkdownToPdf } from '../../../lib/pdf-renderer.mjs';
 
 // Parse de argumentos reutilizando a configuração compartilhada do plugin
 const cli = parseCliArgs(process.argv.slice(2));
@@ -33,6 +34,7 @@ Opções:
   --headless <true|false>    Modo headless (padrão: true)
   --headed                   Atalho para executar com navegador visível
   --timeout <ms>             Timeout de navegação em ms (padrão: ${PLAYWRIGHT_DEFAULTS.navigationTimeout})
+  --pdf                      Gera também documentacao-sistema.pdf via lib/pdf-renderer.mjs (opcional)
 `);
   process.exit(0);
 }
@@ -51,6 +53,7 @@ const headless = cli.getBool('headed', false)
   ? false
   : cli.getBool('headless', PLAYWRIGHT_DEFAULTS.headless);
 const navigationTimeout = cli.getNumber('timeout', PLAYWRIGHT_DEFAULTS.navigationTimeout);
+const generatePdf = cli.getBool('pdf', false);
 
 if (!baseUrl) {
   console.error('Erro: Parâmetro --url é obrigatório.');
@@ -223,8 +226,31 @@ async function run() {
   const indexPath = path.join(outputDir, 'index.md');
   fs.writeFileSync(indexPath, md, 'utf-8');
 
+  let pdfPath = null;
+  if (generatePdf) {
+    const targetPdfPath = path.join(outputDir, 'documentacao-sistema.pdf');
+    try {
+      const pdfResult = await renderMarkdownToPdf({
+        inputPath: indexPath,
+        outputPath: targetPdfPath,
+        type: 'docs',
+        title: docTitle,
+        timeout: navigationTimeout,
+      });
+      pdfPath = pdfResult.pdfPath;
+    } catch (pdfErr) {
+      console.warn(`\nAviso: não foi possível gerar o PDF automaticamente: ${pdfErr?.message || String(pdfErr)}`);
+      if (pdfErr?.fallbackHtmlPath) {
+        console.warn(`    Fallback HTML autocontido salvo em: ${pdfErr.fallbackHtmlPath}`);
+      }
+    }
+  }
+
   console.log(`\n==> Documentação gerada com sucesso!`);
   console.log(`    Arquivo principal: ${indexPath}`);
+  if (pdfPath) {
+    console.log(`    Documento PDF: ${pdfPath}`);
+  }
   console.log(`    Total de telas documentadas: ${inventory.length}`);
 }
 

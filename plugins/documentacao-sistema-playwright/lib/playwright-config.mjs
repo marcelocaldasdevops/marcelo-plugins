@@ -58,7 +58,7 @@ export function parseCliArgs(argv = process.argv.slice(2)) {
       } else {
         const key = token.slice(2);
         const next = argv[i + 1];
-        if (next && !next.startsWith('--')) {
+        if (next && !next.startsWith('-')) {
           flags[key] = next;
           i++;
         } else {
@@ -79,15 +79,20 @@ export function parseCliArgs(argv = process.argv.slice(2)) {
       return defaultValue;
     },
     getBool(name, defaultValue = false) {
-      const val = this.get(name, undefined);
-      if (val === undefined) return defaultValue;
+      const cleanName = name.replace(/^--/, '');
+      if (!Object.prototype.hasOwnProperty.call(flags, cleanName)) {
+        return defaultValue;
+      }
+      const val = flags[cleanName];
       if (typeof val === 'boolean') return val;
       return !['false', '0', 'no', 'nao', 'off'].includes(String(val).toLowerCase());
     },
     getNumber(name, defaultValue) {
-      const val = this.get(name, undefined);
-      if (val === undefined) return defaultValue;
-      const num = Number(val);
+      const cleanName = name.replace(/^--/, '');
+      if (!Object.prototype.hasOwnProperty.call(flags, cleanName)) {
+        return defaultValue;
+      }
+      const num = Number(flags[cleanName]);
       return Number.isFinite(num) ? num : defaultValue;
     },
   };

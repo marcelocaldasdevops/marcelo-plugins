@@ -58,3 +58,21 @@ Sempre que o usuário solicitar testes E2E da branch atual ou de uma implementa�
 5. **Estrutura do Relatório e Segurança**:
    - Inclua cabeçalho com metadados, resumo da branch/implementação, menu navegável, sumário tabular com status (`✅ Passou` / `❌ Falhou`), detalhamento dos cenários com prints, catálogo de erros e conclusão com totais e recomendações.
    - Reaproveite a configuração e sessão autenticada do Playwright já existente no plugin e **nunca** exponha senhas, tokens, cookies ou dados pessoais reais nos relatórios, logs JSON ou prints.
+   - **Acionamento Automático de PDF**: ao finalizar `relatorio-testes.md`, acione automaticamente a skill `relatorio-pdf-playwright` (`scripts/pdf-runner.mjs --input <caminho>/relatorio-testes.md`) para gerar `relatorio-testes.pdf` na mesma pasta, salvo se o usuário pedir explicitamente apenas Markdown.
+
+---
+
+## 📄 Padrão de Qualidade para Relatórios PDF (`relatorio-pdf-playwright`)
+
+Sempre que gerar ou atualizar relatórios PDF a partir de Markdown com evidências:
+
+1. **Acionamento por Fluxo**:
+   - **Automático** ao concluir `testes-e2e-playwright` ➔ `./docs/testes/<slug-da-branch>/relatorio-testes.pdf`.
+   - **Opcional / Sob Demanda** para `documentacao-sistema-playwright` ➔ `./docs-sistema/documentacao-sistema.pdf` ou qualquer relatório Markdown indicado pelo usuário (`/relatorio-pdf`).
+2. **Motor Compartilhado e Zero Dependências Extras**:
+   - Utilize `lib/pdf-renderer.mjs` / `scripts/pdf-runner.mjs` com `page.pdf()` nativo do Chromium do Playwright (formato A4, tema **Executivo Clean**, cards KPI, badges SVG vetoriais e cabeçalho/rodapé paginado).
+3. **Integridade de Imagens e Fallback**:
+   - Incorpore screenshots locais como Data URI Base64 respeitando o diretório base do relatório (sem path traversal) e mantenha `break-inside: avoid` em figuras e blocos de erro.
+   - Se o binário do Chromium não estiver disponível no Node CLI, entregue o fallback `.print.html` autocontido pronto para impressão A4 e informe claramente ao usuário.
+4. **Sanitização Obrigatória**:
+   - Aplique `sanitizeSensitiveText()` antes da renderização para impedir vazamento de senhas, tokens Bearer/JWT, cookies ou dados pessoais no PDF ou `.print.html`.

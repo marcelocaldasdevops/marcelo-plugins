@@ -24,6 +24,7 @@ import {
   slugify,
   waitForPageStable,
 } from '../../../lib/playwright-config.mjs';
+import { renderMarkdownToPdf } from '../../../lib/pdf-renderer.mjs';
 
 export function pad2(num) {
   return String(num).padStart(2, '0');
@@ -585,6 +586,7 @@ Opções:
   --headless <true|false>    Modo headless (padrão: true)
   --headed                   Atalho para executar com navegador visível
   --timeout <ms>             Timeout padrão de navegação (padrão: ${PLAYWRIGHT_DEFAULTS.navigationTimeout})
+  --no-pdf                   Desativa a geração automática de relatorio-testes.pdf ao final
   --help, -h                 Exibe esta ajuda
 `);
 }
@@ -643,6 +645,7 @@ export async function runCli(argv = process.argv.slice(2)) {
     ? false
     : cli.getBool('headless', PLAYWRIGHT_DEFAULTS.headless);
   const navigationTimeout = cli.getNumber('timeout', PLAYWRIGHT_DEFAULTS.navigationTimeout);
+  const generatePdf = cli.getBool('no-pdf', false) ? false : cli.getBool('pdf', true);
 
   console.log('==> Iniciando execução de testes E2E com Playwright...');
   console.log(`    Branch / Escopo: ${gitCtx.branchName} (base: ${gitCtx.baseBranch})`);
@@ -888,8 +891,31 @@ export async function runCli(argv = process.argv.slice(2)) {
   const reportPath = path.join(outputDir, 'relatorio-testes.md');
   fs.writeFileSync(reportPath, reportMd, 'utf-8');
 
+  let pdfPath = null;
+  if (generatePdf) {
+    const targetPdfPath = path.join(outputDir, 'relatorio-testes.pdf');
+    try {
+      const pdfResult = await renderMarkdownToPdf({
+        inputPath: reportPath,
+        outputPath: targetPdfPath,
+        type: 'e2e',
+        title: evidence.meta.title,
+        timeout: navigationTimeout,
+      });
+      pdfPath = pdfResult.pdfPath;
+    } catch (pdfErr) {
+      console.warn(`\nAviso: não foi possível gerar o PDF automaticamente: ${pdfErr?.message || String(pdfErr)}`);
+      if (pdfErr?.fallbackHtmlPath) {
+        console.warn(`    Fallback HTML autocontido salvo em: ${pdfErr.fallbackHtmlPath}`);
+      }
+    }
+  }
+
   console.log('\n==> Execução E2E finalizada!');
-  console.log(`    Relatório: ${reportPath}`);
+  console.log(`    Relatório Markdown: ${reportPath}`);
+  if (pdfPath) {
+    console.log(`    Relatório PDF: ${pdfPath}`);
+  }
   console.log(`    Evidências JSON: ${evidenceJsonPath}`);
   console.log(`    Cenários: ${total} total | ${passed} passou | ${failed} falhou`);
 

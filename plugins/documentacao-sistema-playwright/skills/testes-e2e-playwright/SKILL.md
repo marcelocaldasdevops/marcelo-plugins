@@ -5,14 +5,15 @@ description: >-
   ou de uma implementação informada: identifica telas e fluxos afetados, elabora
   cenários Dado/Quando/Então (caminho feliz, validações e casos de erro), executa
   passo a passo no navegador capturando prints padronizados, monitora console,
-  requisições de rede (4xx/5xx) e exceções não tratadas, e gera relatório completo
-  em docs/testes/<nome-da-branch>/relatorio-testes.md. Use quando o usuário pedir
-  para testar as alterações da branch, rodar testes E2E, validar um fluxo/PR no
-  navegador ou gerar evidências de teste com Playwright.
+  requisições de rede (4xx/5xx) e exceções não tratadas, gera relatório completo
+  em docs/testes/<nome-da-branch>/relatorio-testes.md e aciona automaticamente a
+  skill relatorio-pdf-playwright para gerar relatorio-testes.pdf. Use quando o
+  usuário pedir para testar as alterações da branch, rodar testes E2E, validar um
+  fluxo/PR no navegador ou gerar evidências de teste com Playwright.
 license: MIT
 metadata:
   author: Marcelo Caldas
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Testes E2E de Branch / Implementação com Playwright 🧪
@@ -24,7 +25,7 @@ Esta skill testa ponta a ponta (E2E) todo o fluxo das alterações presentes na 
 - **Execução real com Playwright**: valida cada passo no navegador reutilizando a configuração e sessão do plugin.
 - **Evidências padronizadas**: prints salvos em `./docs/testes/<slug-da-branch>/screenshots/cenario-XX-passo-YY.png` (e sufixo `-erro.png` em falhas).
 - **Monitoramento contínuo**: detecta erros de console, exceções não tratadas (`pageerror`), falhas HTTP (`4xx`/`5xx`) e divergências visuais/funcionais.
-- **Relatório completo**: gera `./docs/testes/<slug-da-branch>/relatorio-testes.md` com diagnóstico de causa provável, sugestão de correção e resumo executivo.
+- **Relatório completo (Markdown + PDF)**: gera `./docs/testes/<slug-da-branch>/relatorio-testes.md` com diagnóstico de causa provável, sugestão de correção e resumo executivo, e aciona automaticamente a skill `relatorio-pdf-playwright` para gerar `./docs/testes/<slug-da-branch>/relatorio-testes.pdf`.
 
 ---
 
@@ -159,6 +160,7 @@ node plugins/documentacao-sistema-playwright/skills/testes-e2e-playwright/script
 - `--storage-state <arquivo.json>`: reaproveita cookies/sessão autenticada do Playwright.
 - `--headless <true|false>` / `--headed`: executa com ou sem interface gráfica (padrão: `true`).
 - `--timeout <ms>`: timeout padrão de navegação (padrão: `30000`).
+- `--no-pdf`: desativa a geração automática de `relatorio-testes.pdf` ao final (padrão: PDF habilitado).
 
 ---
 
@@ -218,6 +220,18 @@ Estrutura obrigatória de `./docs/testes/<slug-da-branch>/relatorio-testes.md`:
 
 Salve também `./docs/testes/<slug-da-branch>/evidencias.json` (quando executado via script ou sempre que útil para rastreabilidade) contendo a telemetria sanitizada da execução.
 
+### Handoff Automático — Gerar PDF (`relatorio-pdf-playwright`)
+
+Assim que `./docs/testes/<slug-da-branch>/relatorio-testes.md` estiver salvo e validado (a menos que o usuário tenha pedido explicitamente apenas Markdown), **acione imediatamente a skill `relatorio-pdf-playwright`** executando o gerador compartilhado para produzir `./docs/testes/<slug-da-branch>/relatorio-testes.pdf` na mesma pasta:
+
+```bash
+node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
+  --input "./docs/testes/<slug-da-branch>/relatorio-testes.md"
+```
+
+- No **Modo CLI (`e2e-runner.mjs`)**, essa exportação já ocorre automaticamente ao final via [lib/pdf-renderer.mjs](../../lib/pdf-renderer.mjs) (use `--no-pdf` apenas se desejar pular).
+- Se o Chromium do Playwright não estiver disponível no Node CLI, o gerador produzirá automaticamente o fallback `./docs/testes/<slug-da-branch>/relatorio-testes.print.html` autocontido para impressão A4.
+
 ---
 
 ### Etapa 7 — Concluir com Resumo Executivo
@@ -225,6 +239,7 @@ Salve também `./docs/testes/<slug-da-branch>/evidencias.json` (quando executado
 Finalize o relatório (e a resposta ao usuário no chat) apresentando:
 - **Total de cenários executados**, quantos **passaram (✅)** e quantos **falharam (❌)** com percentual de aprovação.
 - **Saúde técnica**: total de erros de console, exceções `pageerror` e falhas HTTP (`4xx`/`5xx`).
+- **Artefatos gerados**: caminhos de `relatorio-testes.md`, `relatorio-testes.pdf` (ou `.print.html` em fallback) e pasta `screenshots/`.
 - **Parecer de prontidão**: se a branch está apta para merge/homologação ou bloqueada por correções.
 - **Recomendações priorizadas**: correções obrigatórias (bloqueantes) e melhorias sugeridas (não bloqueantes).
 
