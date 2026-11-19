@@ -17,6 +17,10 @@ import {
   slugify,
 } from '../../../lib/playwright-config.mjs';
 import { renderMarkdownToPdf } from '../../../lib/pdf-renderer.mjs';
+import {
+  normalizeAiGuardMode,
+  normalizeAudienceProfile,
+} from '../../../lib/content-guardrails.mjs';
 
 // Parse de argumentos reutilizando a configuração compartilhada do plugin
 const cli = parseCliArgs(process.argv.slice(2));
@@ -34,7 +38,9 @@ Opções:
   --headless <true|false>    Modo headless (padrão: true)
   --headed                   Atalho para executar com navegador visível
   --timeout <ms>             Timeout de navegação em ms (padrão: ${PLAYWRIGHT_DEFAULTS.navigationTimeout})
-  --pdf                      Gera também documentacao-sistema.pdf via lib/pdf-renderer.mjs (opcional)
+  --pdf                      Gera também o PDF da documentação via lib/pdf-renderer.mjs (opcional)
+  --audience <tech|exec>     Público-alvo do PDF (com --pdf): technical ou executive (padrão: technical)
+  --ai-guard <strict|sanit.> Política Zero Referência a IA no PDF: strict ou sanitize (padrão: strict)
 `);
   process.exit(0);
 }
@@ -54,6 +60,8 @@ const headless = cli.getBool('headed', false)
   : cli.getBool('headless', PLAYWRIGHT_DEFAULTS.headless);
 const navigationTimeout = cli.getNumber('timeout', PLAYWRIGHT_DEFAULTS.navigationTimeout);
 const generatePdf = cli.getBool('pdf', false);
+const pdfAudience = normalizeAudienceProfile(cli.get('audience', 'technical'), 'technical') || 'technical';
+const pdfAiGuard = normalizeAiGuardMode(cli.get('ai-guard', 'strict'), 'strict') || 'strict';
 
 if (!baseUrl) {
   console.error('Erro: Parâmetro --url é obrigatório.');
@@ -228,12 +236,16 @@ async function run() {
 
   let pdfPath = null;
   if (generatePdf) {
-    const targetPdfPath = path.join(outputDir, 'documentacao-sistema.pdf');
+    const pdfFilename =
+      pdfAudience === 'executive' ? 'documentacao-sistema-executiva.pdf' : 'documentacao-sistema.pdf';
+    const targetPdfPath = path.join(outputDir, pdfFilename);
     try {
       const pdfResult = await renderMarkdownToPdf({
         inputPath: indexPath,
         outputPath: targetPdfPath,
         type: 'docs',
+        audience: pdfAudience,
+        aiGuard: pdfAiGuard,
         title: docTitle,
         timeout: navigationTimeout,
       });

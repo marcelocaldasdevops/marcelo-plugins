@@ -1,7 +1,7 @@
 {
   "name": "documentacao-sistema-playwright",
-  "version": "1.2.0",
-  "description": "Gera documentação técnica completa de sistemas web, executa testes E2E de branches/implementações e exporta relatórios editoriais em PDF A4 usando Playwright.",
+  "version": "1.3.0",
+  "description": "Gera documentação de sistemas web, executa testes E2E de branches/implementações e exporta relatórios PDF A4 com perfis Técnico e Executivo (Não Técnico) sob Política Zero Referência a IA usando Playwright.",
   "author": {
     "name": "Marcelo Caldas",
     "url": "https://github.com/marcelocaldasdevops"

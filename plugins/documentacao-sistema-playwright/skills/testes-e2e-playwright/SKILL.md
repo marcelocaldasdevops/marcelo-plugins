@@ -222,15 +222,13 @@ Salve também `./docs/testes/<slug-da-branch>/evidencias.json` (quando executado
 
 ### Handoff Automático — Gerar PDF (`relatorio-pdf-playwright`)
 
-Assim que `./docs/testes/<slug-da-branch>/relatorio-testes.md` estiver salvo e validado (a menos que o usuário tenha pedido explicitamente apenas Markdown), **acione imediatamente a skill `relatorio-pdf-playwright`** executando o gerador compartilhado para produzir `./docs/testes/<slug-da-branch>/relatorio-testes.pdf` na mesma pasta:
+Assim que `./docs/testes/<slug-da-branch>/relatorio-testes.md` estiver salvo e validado (a menos que o usuário tenha pedido explicitamente apenas Markdown), **acione imediatamente a skill `relatorio-pdf-playwright`**:
 
-```bash
-node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
-  --input "./docs/testes/<slug-da-branch>/relatorio-testes.md"
-```
-
-- No **Modo CLI (`e2e-runner.mjs`)**, essa exportação já ocorre automaticamente ao final via [lib/pdf-renderer.mjs](../../lib/pdf-renderer.mjs) (use `--no-pdf` apenas se desejar pular).
-- Se o Chromium do Playwright não estiver disponível no Node CLI, o gerador produzirá automaticamente o fallback `./docs/testes/<slug-da-branch>/relatorio-testes.print.html` autocontido para impressão A4.
+1. **Pergunta obrigatória de público (Passo 0 da `relatorio-pdf-playwright`)**: caso o usuário ainda não tenha informado para quem é o PDF, pergunte antes de gerar:
+   - **Público Técnico** (`--audience technical`): gera `relatorio-testes.pdf` mantendo os detalhes técnicos para engenharia/QA (ainda sob a Política Zero Referência a IA).
+   - **Público Não Técnico / Executivo** (`--audience executive`): cria `relatorio-testes-executivo.md` em linguagem simples de alto nível (sem jargão de programação e sem qualquer referência a IA, preservando `relatorio-testes.md` intacto) e gera `relatorio-testes-executivo.pdf`.
+2. **No Modo CLI (`e2e-runner.mjs`)**: a exportação já ocorre automaticamente ao final via [lib/pdf-renderer.mjs](../../lib/pdf-renderer.mjs), aceitando `--audience technical|executive` (padrão `technical`) e `--no-pdf` para pular.
+3. **Fallback automático**: se não houver Chromium/Chrome disponível no ambiente, o gerador grava `.print.html` autocontido para impressão A4.
 
 ---
 

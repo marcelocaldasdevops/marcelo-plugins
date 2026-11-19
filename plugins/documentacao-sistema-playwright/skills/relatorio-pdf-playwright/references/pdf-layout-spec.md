@@ -1,6 +1,6 @@
 # Especificação Editorial — Tema **Executivo Clean** (`pdf-renderer.mjs`)
 
-Referência visual e técnica do motor compartilhado `lib/pdf-renderer.mjs` utilizado pela skill `relatorio-pdf-playwright`.
+Referência visual, editorial e de conformidade do motor compartilhado `lib/pdf-renderer.mjs` e das guardrails `lib/content-guardrails.mjs` utilizados pela skill `relatorio-pdf-playwright`.
 
 ---
 
@@ -9,57 +9,95 @@ Referência visual e técnica do motor compartilhado `lib/pdf-renderer.mjs` util
 | Parâmetro | Valor Padrão | Finalidade |
 | :--- | :--- | :--- |
 | **Formato** | `A4` retrato (`210mm × 297mm`) | Compatibilidade corporativa universal para leitura em tela e impressão |
-| **Margens** | `top: 18mm`, `bottom: 18mm`, `left: 12mm`, `right: 12mm` | Área útil de `186mm` com espaço dedicado para cabeçalho e rodapé nativos |
-| **`printBackground`** | `true` | Preserva cabeçalho escuro, cards KPI, zebrado de tabelas e badges de status |
-| **Cabeçalho Nativo** | CSS inline `8px` (`title` + perfil do documento) | Identificação discreta no topo de todas as páginas |
-| **Rodapé Nativo** | CSS inline `8px` (`Gerado via Playwright • data` + `Página X de Y`) | Rastreabilidade temporal e numeração `.pageNumber` / `.totalPages` |
+| **Margens** | `top: 18mm`, `bottom: 18mm`, `left: 12mm`, `right: 12mm` | Área útil de `186mm` com espaço dedicado para cabeçalho e rodapé paginados |
+| **`printBackground`** | `true` | Preserva cabeçalho institucional escuro, cards KPI, zebrado de tabelas e badges |
+| **Cabeçalho Paginado** | CSS inline `8px` (`título` + selo do perfil) | Identificação discreta no topo de todas as páginas |
+| **Rodapé Paginado** | CSS inline `8px` (data de emissão + `Página X de Y`) | Rastreabilidade temporal e numeração `.pageNumber` / `.totalPages` |
 
-> **Nota técnica do Chromium**: `headerTemplate` e `footerTemplate` rodam em contexto isolado do DOM principal; por isso utilizam exclusivamente estilos inline explícitos.
-
----
-
-## 2. Paleta Institucional
-
-- **Cabeçalho Institucional**: gradiente `#0f172a` ➔ `#1e293b`, texto `#ffffff`, destaque inferior `#2563eb` e selo superior `#93c5fd`.
-- **Superfície & Texto**: fundo `#ffffff`, texto primário `#0f172a` / `#1e293b`, texto secundário `#475569` / `#64748b`, bordas `#cbd5e1` / `#e2e8f0`.
-- **Semântica de Sucesso (`Passou` / `Aprovado`)**: fundo `#dcfce7` / `#f0fdf4`, borda `#86efac`, texto `#166534`, ícone `#16a34a`.
-- **Semântica de Falha (`Falhou` / `ERR-XX`)**: fundo `#fee2e2` / `#fef2f2`, borda `#fca5a5`, texto `#991b1b`, ícone `#dc2626`.
+> **Nota de renderização**: `headerTemplate` e `footerTemplate` executam em contexto isolado do DOM principal; por isso utilizam exclusivamente estilos inline explícitos. No fallback por binário local, regras equivalentes `@page` com `@top-left`, `@top-right`, `@bottom-left` e `@bottom-right` são injetadas automaticamente.
 
 ---
 
-## 3. Cards Executivos de KPI por Perfil (`--type`)
+## 2. Perfis de Audiência (`--audience technical` vs `--audience executive`)
 
-### Perfil `e2e` (`relatorio-testes.md` + `evidencias.json` opcional)
-1. **Cenários Executados**: total de cenários e percentual de aprovação.
-2. **Aprovados**: contagem de cenários com cláusula `Então` e telemetria limpas.
-3. **Falharam**: contagem de cenários reprovados (destaque vermelho quando `> 0`).
-4. **Parecer Técnico**: `Aprovado` ou `Bloqueado` + total de ocorrências de erro (`ERR-XX` / telemetria).
+O motor adapta rótulos institucionais, barra de metadados, blocos técnicos e nomenclatura de saída conforme o público-alvo:
 
-### Perfil `docs` (`docs-sistema/index.md` + `inventory.json` opcional)
-1. **Telas Mapeadas**: total de telas catalogadas no documento.
-2. **Screenshots HD**: total de capturas full-page incorporadas no PDF.
-3. **Campos Mapeados**: total de inputs, selects e textareas inventariados.
-4. **Status do Catálogo**: total de ações mapeadas ou indicador `Completo`.
-
-*(No perfil `generic`, a grade de KPI é omitida para manter o foco no conteúdo editorial).*
-
----
-
-## 4. Badges Vetoriais SVG e Regras de Quebra
-
-- **Independência de Fontes Emoji**: servidores Linux em CI/containers frequentemente não possuem `Noto Color Emoji`. O `inlineMarkdownToHtml()` converte `✅ Passou`, `❌ Falhou`, `✅ Aprovado`, `❌ Reprovado`, `✅` e `❌` em SVGs vetoriais inline nítidos em qualquer resolução.
-- **Screenshots (`figure.screenshot-card`)**:
-  - `break-inside: avoid` mantém a moldura e o `<figcaption>` na mesma página.
-  - `max-height: 170mm; max-width: 100%; object-fit: contain` impede que capturas `fullPage` muito altas estourem a altura útil da folha A4.
-  - Capturas com sufixo `-erro.png` recebem borda lateral vermelha de destaque (`screenshot-card-error`).
-- **Tabelas e Diagnósticos**:
-  - `thead { display: table-header-group }` repete automaticamente os títulos das colunas caso uma tabela longa atravesse mais de uma página.
-  - Cabeçalhos (`h1..h6`) usam `break-after: avoid` para nunca ficarem órfãos no fim da página.
+| Elemento Editorial | `--audience technical` (Engenharia / QA) | `--audience executive` (Gestores / Clientes / Diretoria) |
+| :--- | :--- | :--- |
+| **Eyebrow (`e2e`)** | `Relatório Executivo de Qualidade & Evidências E2E` | `Relatório Executivo de Validação do Sistema` |
+| **Eyebrow (`docs`)** | `Catálogo Técnico & Inventário de Interfaces` | `Guia Visual e Funcional do Sistema` |
+| **Eyebrow (`generic`)** | `Documento Técnico Consolidado` | `Relatório Institucional Consolidado` |
+| **Cabeçalho Direito (`e2e`)** | `Testes E2E • Playwright` | `Validação do Sistema` |
+| **Cabeçalho Direito (`docs`)** | `Documentação de Sistema • Playwright` | `Guia do Sistema` |
+| **Cabeçalho Direito (`generic`)** | `Relatório • Playwright` | `Documento Executivo` |
+| **Rodapé Esquerdo** | `Gerado via Playwright • DD/MM/AAAA HH:MM` | `Documento emitido em DD/MM/AAAA HH:MM` |
+| **Barra de Metadados** | Mantém `Branch`, `Branch Base`, `Commit`, `URL Base`, `Data` | Oculta metadados de código/Git (`Branch`, `Branch Base`, `Commit`, `Diff`, `SHA`, `PR`) |
+| **Seções e Blocos de Código** | Preserva `Arquivos Detectados no Diff`, logs HTTP e stack traces | Omite automaticamente seções de diff/código e blocos brutos de stack trace/HTTP |
+| **Arquivo PDF Padrão (`e2e`)** | `relatorio-testes.pdf` | `relatorio-testes-executivo.pdf` |
+| **Arquivo PDF Padrão (`docs`)** | `documentacao-sistema.pdf` | `documentacao-sistema-executiva.pdf` |
 
 ---
 
-## 5. Segurança e Sanitização
+## 3. Cards Executivos de KPI por Perfil e Audiência
 
-1. **Sanitização Prévia**: todo Markdown passa por `sanitizeSensitiveText()` antes da conversão HTML, mascarando tokens `Bearer`, JWTs e pares sensíveis (`password`, `senha`, `secret`, `api_key`, `cookie`, `cpf`, `cnpj`).
-2. **Escapamento HTML Estrito**: tags HTML cruas são escapadas via `escapeHtml()`, preservando unicamente âncoras internas seguras `<a id="slug"></a>` cujo `id` valide `/^[a-zA-Z0-9_-]+$/`.
-3. **Proteção Anti Path-Traversal**: imagens locais são resolvidas com `path.resolve` + `fs.realpathSync` e só são lidas em Base64 se pertencerem estritamente à árvore do diretório base do documento Markdown. Imagens ausentes exibem um aviso visual estilizado sem interromper a geração do PDF.
+### 3.1 Perfil `e2e`
+
+| Card | `--audience technical` | `--audience executive` |
+| :--- | :--- | :--- |
+| **Card 1** | **Cenários Executados** (`Taxa de aprovação: X%`) | **Fluxos Validados** (`Índice de aprovação: X%`) |
+| **Card 2** | **Aprovados** (`Fluxos validados sem falhas`) | **Aprovados** (`Etapas concluídas conforme esperado`) |
+| **Card 3** | **Falharam** (`Nenhuma quebra funcional` / `Requer correção antes do merge`) | **Pontos de Atenção** (`Nenhum impedimento identificado` / `Requer ajuste antes da liberação`) |
+| **Card 4** | **Parecer Técnico** (`Aprovado` / `Bloqueado` + `N ocorrência(s) de erro`) | **Situação da Entrega** (`Pronta` / `Requer Ajustes` + resumo claro de ocorrências) |
+
+### 3.2 Perfil `docs`
+
+| Card | `--audience technical` | `--audience executive` |
+| :--- | :--- | :--- |
+| **Card 1** | **Telas Mapeadas** (`Catálogo navegável do sistema`) | **Telas Apresentadas** (`Visão navegável do sistema`) |
+| **Card 2** | **Screenshots HD** (`Capturas full-page incorporadas`) | **Capturas de Tela** (`Imagens reais das interfaces`) |
+| **Card 3** | **Campos Mapeados** (`Entradas, seletores e formulários`) | **Campos da Interface** (`Áreas de preenchimento e consulta`) |
+| **Card 4** | **Status do Catálogo** (`Inventário técnico atualizado`) | **Situação do Guia** (`Conteúdo completo e atualizado`) |
+
+*(No perfil `generic`, a grade de KPI é omitida para manter o foco no texto editorial).*
+
+---
+
+## 4. Política Absoluta Zero Referência a IA (`content-guardrails.mjs`)
+
+Todos os relatórios passam pela auditoria determinística de `lib/content-guardrails.mjs`:
+
+1. **Escopo da Proibição**:
+   - Provedores, modelos e plataformas: `Claude`, `Anthropic`, `OpenAI`, `ChatGPT`, `GPT`, `Gemini`, `Google AI`, `Vertex AI`, `Antigravity`, `Cursor AI`, `GitHub Copilot`, `Copilot`, `Perplexity`, `DeepSeek`, `Llama`, `Mistral`, `Grok`, `xAI`, `Midjourney`, `Bedrock`, `Ollama`, `LangChain`, `AutoGPT`, `CrewAI`, entre outros.
+   - Siglas e conceitos correlatos: `IA`, `I.A.`, `AI`, `A.I.`, `inteligência artificial`, `artificial intelligence`, `LLM`, `modelo de linguagem`, `machine learning`, `aprendizado de máquina`, `agente`, `subagente`, `multi-agente`, `chatbot`, `prompt`.
+2. **Precisão Linguística em Português**:
+   - As expressões regulares utilizam fronteiras Unicode (`(?<![\p{L}\p{N}_])...(?![\p{L}\p{N}_])`) e diferenciação contextual de caixa para **nunca** gerar falsos positivos em vocábulos comuns do português (`dia`, `via`, `guia`, `história`, `mídia`, `copia`, `envia`, `agência`, `agenda`, `agendamento`, `reagente` ou o verbo `ia` em minúsculas) nem em payloads Base64 de screenshots.
+3. **Modos de Operação (`--ai-guard`)**:
+   - `strict` *(padrão)*: bloqueia imediatamente a geração do PDF com erro `FORBIDDEN_AI_REFERENCE` detalhando linha, categoria e trecho exato.
+   - `sanitize`: remove/substitui ocorrências residuais de forma limpa e registra aviso no console.
+
+---
+
+## 5. Guia Rápido de Adaptação para Público Não Técnico
+
+Ao produzir `<nome>-executivo.md` antes de chamar `--audience executive`:
+
+1. **Foco na Jornada do Usuário**: descreva cada tela pelo objetivo de negócio (*"Tela de acompanhamento de faturas"*) em vez da arquitetura (*"Componente SSR da rota `/billing`"*).
+2. **Tradução de Falhas sem Omissão**: mantenha total transparência sobre falhas encontradas, porém descreva o sintoma percebido e a consequência operacional (*"Ao clicar em Salvar com o cadastro em branco, o sistema não exibiu aviso de preenchimento obrigatório e interrompeu a operação"*) em vez de despejar `HTTP 500` ou `Cannot read properties of undefined`.
+3. **Recomendações Orientadas a Decisão**: classifique ações como **Impeditivas antes da liberação** vs **Melhorias recomendadas**, permitindo tomada de decisão rápida por gestores e clientes.
+
+---
+
+## 6. Paleta Institucional, Badges SVG e Segurança
+
+- **Paleta Executivo Clean**:
+  - Cabeçalho institucional: gradiente `#0f172a` ➔ `#1e293b`, texto `#ffffff`, linha de destaque `#2563eb`, eyebrow `#93c5fd`.
+  - Semântica de aprovação: fundo `#dcfce7` / `#f0fdf4`, borda `#86efac`, texto `#166534`.
+  - Semântica de falha / atenção: fundo `#fee2e2` / `#fef2f2`, borda `#fca5a5`, texto `#991b1b`.
+- **Badges Vetoriais SVG e Paginação**:
+  - `✅ Passou`, `❌ Falhou`, `✅ Aprovado`, `❌ Reprovado`, `✅` e `❌` são convertidos em SVGs inline independentes de fontes de emoji do SO.
+  - Figuras (`figure.screenshot-card`) usam `break-inside: avoid` e `max-height: 170mm`, mantendo imagem e legenda unidas na mesma folha A4.
+  - Tabelas repetem `<thead>` automaticamente ao cruzar páginas (`display: table-header-group`).
+- **Segurança e Sanitização**:
+  - `sanitizeSensitiveText()` mascara tokens `Bearer`/JWT, senhas, chaves de API, cookies e documentos sensíveis antes da conversão HTML.
+  - Tags HTML cruas são escapadas via `escapeHtml()`, preservando apenas âncoras internas seguras `<a id="slug"></a>`.
+  - Imagens locais são validadas com `path.resolve` + `fs.realpathSync` contra *path traversal*, aceitando exclusivamente arquivos dentro do diretório base do relatório.

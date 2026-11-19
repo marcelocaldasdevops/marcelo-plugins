@@ -17,7 +17,7 @@
     {
       "name": "documentacao-sistema-playwright",
       "source": "./plugins/documentacao-sistema-playwright",
-      "description": "Gera documentação técnica completa de sistemas web, executa testes E2E de branches/implementações e exporta relatórios editoriais em PDF A4 usando Playwright."
+      "description": "Gera documentação de sistemas web, executa testes E2E de branches/implementações e exporta relatórios PDF A4 com perfis Técnico e Executivo (Não Técnico) sob Política Zero Referência a IA usando Playwright."
     },
     {
       "name": "hallmark",

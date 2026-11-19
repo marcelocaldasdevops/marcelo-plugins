@@ -18,6 +18,14 @@ import {
   sanitizeSensitiveText,
   slugify,
 } from './playwright-config.mjs';
+import {
+  assertNoForbiddenAiReferences,
+  isTechnicalMetaLabel,
+  normalizeAiGuardMode,
+  normalizeAudienceProfile,
+  sanitizeForbiddenAiTerms,
+  stripTechnicalMarkdownForExecutive,
+} from './content-guardrails.mjs';
 
 const MIME_BY_EXT = Object.freeze({
   '.png': 'image/png',
@@ -733,7 +741,14 @@ export function loadCompanionData(inputPath, reportType = 'auto') {
   };
 }
 
-function extractDocumentMetadata(markdown, companionData, explicitTitle, resolvedType) {
+function extractDocumentMetadata(
+  markdown,
+  companionData,
+  explicitTitle,
+  resolvedType,
+  audience = 'technical'
+) {
+  const isExecutive = audience === 'executive';
   const lines = String(markdown || '').replace(/\r\n/g, '\n').split('\n');
 
   let docTitle = explicitTitle ? String(explicitTitle).trim() : '';
@@ -749,12 +764,21 @@ function extractDocumentMetadata(markdown, companionData, explicitTitle, resolve
   }
 
   if (!docTitle) {
-    docTitle =
-      resolvedType === 'e2e'
-        ? 'Relatório Executivo de Testes E2E'
-        : resolvedType === 'docs'
-          ? 'Documentação Técnica do Sistema'
-          : 'Relatório Técnico';
+    if (isExecutive) {
+      docTitle =
+        resolvedType === 'e2e'
+          ? 'Relatório Executivo de Validação do Sistema'
+          : resolvedType === 'docs'
+            ? 'Guia Visual e Funcional do Sistema'
+            : 'Relatório Executivo';
+    } else {
+      docTitle =
+        resolvedType === 'e2e'
+          ? 'Relatório Executivo de Testes E2E'
+          : resolvedType === 'docs'
+            ? 'Documentação Técnica do Sistema'
+            : 'Relatório Técnico';
+    }
   }
 
   // Extrai pares `**Chave:** Valor` do bloco inicial `>` se presentes
@@ -767,6 +791,7 @@ function extractDocumentMetadata(markdown, companionData, explicitTitle, resolve
       const m = seg.trim().match(/^\*\*([^*:]+):\*\*\s*(.+)$/);
       if (m) {
         const label = m[1].trim();
+        if (isExecutive && isTechnicalMetaLabel(label)) continue;
         const rawVal = m[2].replace(/`/g, '').trim();
         metaPairs.push({ label, value: rawVal });
       }
@@ -776,7 +801,8 @@ function extractDocumentMetadata(markdown, companionData, explicitTitle, resolve
   return { docTitle, metaPairs };
 }
 
-function computeKpiCards(markdown, resolvedType, companionData) {
+function computeKpiCards(markdown, resolvedType, companionData, audience = 'technical') {
+  const isExecutive = audience === 'executive';
   const ev = companionData?.evidencias || null;
   const inv = companionData?.inventory || null;
   const text = String(markdown || '');
@@ -832,6 +858,38 @@ function computeKpiCards(markdown, resolvedType, companionData) {
     const approvalRate =
       totalScenarios > 0 ? `${Math.round((passedScenarios / totalScenarios) * 100)}%` : 'N/A';
     const overallApproved = totalScenarios > 0 && failedScenarios === 0 && totalErrors === 0;
+
+    if (isExecutive) {
+      return [
+        {
+          label: 'Fluxos Validados',
+          value: String(totalScenarios),
+          sub: `Taxa de aprovação: ${approvalRate}`,
+          tone: 'neutral',
+        },
+        {
+          label: 'Aprovados',
+          value: String(passedScenarios),
+          sub: 'Fluxos funcionando conforme esperado',
+          tone: 'success',
+        },
+        {
+          label: 'Pontos de Atenção',
+          value: String(failedScenarios),
+          sub: failedScenarios === 0 ? 'Nenhum impedimento encontrado' : 'Requer ajuste antes da liberação',
+          tone: failedScenarios > 0 ? 'danger' : 'success',
+        },
+        {
+          label: 'Situação da Entrega',
+          value: totalScenarios === 0 ? 'Informativo' : overallApproved ? 'Pronta' : 'Requer Ajustes',
+          sub:
+            totalErrors === 0
+              ? 'Nenhuma ocorrência registrada'
+              : `${totalErrors} ocorrência(s) para revisão`,
+          tone: totalScenarios === 0 ? 'neutral' : overallApproved ? 'success' : 'danger',
+        },
+      ];
+    }
 
     return [
       {
@@ -896,6 +954,35 @@ function computeKpiCards(markdown, resolvedType, companionData) {
       }
     } else {
       totalInputs = (text.match(/\(input:|textarea|select\)/gi) || []).length;
+    }
+
+    if (isExecutive) {
+      return [
+        {
+          label: 'Telas Apresentadas',
+          value: String(totalScreens),
+          sub: 'Visão navegável do sistema',
+          tone: 'neutral',
+        },
+        {
+          label: 'Capturas de Tela',
+          value: String(totalScreenshots),
+          sub: 'Imagens reais das interfaces',
+          tone: 'success',
+        },
+        {
+          label: 'Campos da Interface',
+          value: String(totalInputs),
+          sub: 'Áreas de preenchimento e consulta',
+          tone: 'neutral',
+        },
+        {
+          label: 'Situação do Guia',
+          value: totalActions > 0 ? `${totalActions} ações` : 'Completo',
+          sub: 'Conteúdo completo e atualizado',
+          tone: 'success',
+        },
+      ];
     }
 
     return [
@@ -1394,10 +1481,16 @@ function buildExecutiveCss() {
   `;
 }
 
-function buildHeaderFooterTemplates({ title, typeLabel, generatedAtLabel }) {
-  const safeTitle = escapeHtml(title || 'Relatório Técnico');
-  const safeType = escapeHtml(typeLabel || 'Playwright');
+function buildHeaderFooterTemplates({ title, typeLabel, generatedAtLabel, audience = 'technical' }) {
+  const isExecutive = audience === 'executive';
+  const safeTitle = escapeHtml(title || (isExecutive ? 'Relatório Executivo' : 'Relatório Técnico'));
+  const safeType = escapeHtml(typeLabel || (isExecutive ? 'Relatório Executivo' : 'Playwright'));
   const safeDate = escapeHtml(generatedAtLabel || '');
+  const footerLeft = isExecutive
+    ? safeDate
+      ? `Documento emitido em ${safeDate}`
+      : 'Documento Executivo'
+    : `Gerado via Playwright${safeDate ? ` • ${safeDate}` : ''}`;
 
   const headerTemplate =
     `<div style="font-size:8px;width:100%;padding:0 12mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#64748b;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:3px;">` +
@@ -1407,7 +1500,7 @@ function buildHeaderFooterTemplates({ title, typeLabel, generatedAtLabel }) {
 
   const footerTemplate =
     `<div style="font-size:8px;width:100%;padding:0 12mm;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#64748b;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e8f0;padding-top:3px;">` +
-    `<span>Gerado via Playwright${safeDate ? ` • ${safeDate}` : ''}</span>` +
+    `<span>${footerLeft}</span>` +
     `<span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>` +
     `</div>`;
 
@@ -1425,39 +1518,72 @@ function formatPtBrDateTime(inputDate) {
 
 /**
  * Gera um documento HTML5 completo e autocontido (imagens Base64 + CSS `@page` A4)
- * no estilo Executivo Clean.
+ * no estilo Executivo Clean, respeitando o perfil de público (`technical` | `executive`)
+ * e a Política Zero Referência a IA (`strict` | `sanitize`).
  */
 export function buildPdfHtml({
   markdown,
   baseDir = process.cwd(),
   title = '',
   type = 'generic',
+  audience = 'technical',
+  aiGuard = 'strict',
   companionData = null,
   generatedAt = new Date(),
   stats = null,
 } = {}) {
-  const sanitizedMarkdown = sanitizeSensitiveText(markdown || '');
+  const resolvedAudience = normalizeAudienceProfile(audience, 'technical') || 'technical';
+  const resolvedAiGuard = normalizeAiGuardMode(aiGuard, 'strict') || 'strict';
+  const isExecutive = resolvedAudience === 'executive';
+
+  let workingMarkdown = sanitizeSensitiveText(markdown || '');
+  let workingTitle = sanitizeSensitiveText(title || '');
+  const renderStats = stats || { embeddedImages: 0, missingImages: 0, sanitizedAiMatches: 0 };
+  if (renderStats.sanitizedAiMatches === undefined) renderStats.sanitizedAiMatches = 0;
+
+  if (isExecutive) {
+    workingMarkdown = stripTechnicalMarkdownForExecutive(workingMarkdown);
+  }
+
+  if (resolvedAiGuard === 'sanitize') {
+    const mdRes = sanitizeForbiddenAiTerms(workingMarkdown);
+    const titleRes = sanitizeForbiddenAiTerms(workingTitle);
+    workingMarkdown = mdRes.text;
+    workingTitle = titleRes.text;
+    renderStats.sanitizedAiMatches += mdRes.matches.length + titleRes.matches.length;
+  } else {
+    if (workingTitle) {
+      assertNoForbiddenAiReferences(workingTitle, { contextLabel: 'título do PDF' });
+    }
+    assertNoForbiddenAiReferences(workingMarkdown, { contextLabel: 'conteúdo Markdown' });
+  }
+
   const resolvedType = ['e2e', 'docs', 'generic'].includes(type) ? type : companionData?.type || 'generic';
-  const renderStats = stats || { embeddedImages: 0, missingImages: 0 };
 
   const { docTitle, metaPairs } = extractDocumentMetadata(
-    sanitizedMarkdown,
+    workingMarkdown,
     companionData,
-    title,
-    resolvedType
+    workingTitle,
+    resolvedType,
+    resolvedAudience
   );
   const generatedLabel = formatPtBrDateTime(generatedAt);
 
-  const eyebrowLabel =
-    resolvedType === 'e2e'
+  const eyebrowLabel = isExecutive
+    ? resolvedType === 'e2e'
+      ? 'Relatório Executivo de Validação do Sistema'
+      : resolvedType === 'docs'
+        ? 'Guia Visual e Funcional do Sistema'
+        : 'Relatório Executivo'
+    : resolvedType === 'e2e'
       ? 'Relatório Executivo de Qualidade & Evidências E2E'
       : resolvedType === 'docs'
         ? 'Catálogo Técnico & Inventário de Interfaces'
         : 'Documento Técnico Consolidado';
 
   const effectiveMeta = [...metaPairs];
-  if (!effectiveMeta.some((m) => /data/i.test(m.label)) && generatedLabel) {
-    effectiveMeta.push({ label: 'Emissão PDF', value: generatedLabel });
+  if (!effectiveMeta.some((m) => /data|emiss[ãa]o/i.test(m.label)) && generatedLabel) {
+    effectiveMeta.push({ label: isExecutive ? 'Data de Emissão' : 'Emissão PDF', value: generatedLabel });
   }
 
   const metaBarHtml =
@@ -1474,7 +1600,7 @@ export function buildPdfHtml({
           .join('')}</div>`
       : '';
 
-  const kpiCards = computeKpiCards(sanitizedMarkdown, resolvedType, companionData);
+  const kpiCards = computeKpiCards(workingMarkdown, resolvedType, companionData, resolvedAudience);
   const kpiHtml =
     kpiCards.length > 0
       ? `<section class="kpi-grid" aria-label="Indicadores Executivos">${kpiCards
@@ -1496,7 +1622,7 @@ export function buildPdfHtml({
           .join('')}</section>`
       : '';
 
-  const bodyHtml = markdownToHtml(sanitizedMarkdown, {
+  const bodyHtml = markdownToHtml(workingMarkdown, {
     baseDir,
     stats: renderStats,
     stripFirstH1: true,
@@ -1641,8 +1767,17 @@ export function findLocalChromiumExecutable() {
   return findLocalChromiumExecutables()[0] || null;
 }
 
-function injectChromiumCliPageCounters(html, { title, typeLabel, generatedAtLabel }) {
+function injectChromiumCliPageCounters(
+  html,
+  { title, typeLabel, generatedAtLabel, audience = 'technical' }
+) {
+  const isExecutive = audience === 'executive';
   const safeCssStr = (val) => String(val || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const bottomLeftText = isExecutive
+    ? generatedAtLabel
+      ? `Documento emitido em ${safeCssStr(generatedAtLabel)}`
+      : 'Documento Executivo'
+    : `Gerado via Playwright${generatedAtLabel ? ` • ${safeCssStr(generatedAtLabel)}` : ''}`;
   const pageRules = `
   @page {
     size: A4 portrait;
@@ -1660,7 +1795,7 @@ function injectChromiumCliPageCounters(html, { title, typeLabel, generatedAtLabe
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
     @bottom-left {
-      content: "Gerado via Playwright${generatedAtLabel ? ` • ${safeCssStr(generatedAtLabel)}` : ''}";
+      content: "${bottomLeftText}";
       font-size: 7.5pt;
       color: #64748b;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -1721,6 +1856,8 @@ export async function renderMarkdownToPdf({
   inputPath,
   outputPath,
   type = 'auto',
+  audience = 'technical',
+  aiGuard = 'strict',
   title = '',
   emitHtmlOnly = false,
   timeout = PLAYWRIGHT_DEFAULTS.navigationTimeout,
@@ -1729,14 +1866,39 @@ export async function renderMarkdownToPdf({
     throw new Error('O caminho de entrada (`inputPath`) é obrigatório para gerar o PDF.');
   }
 
+  const resolvedAudience = normalizeAudienceProfile(audience, 'technical') || 'technical';
+  const resolvedAiGuard = normalizeAiGuardMode(aiGuard, 'strict') || 'strict';
+  const isExecutive = resolvedAudience === 'executive';
+
   const resolvedInput = path.resolve(inputPath);
   if (!fs.existsSync(resolvedInput)) {
     throw new Error(`Arquivo Markdown não encontrado em: '${resolvedInput}'.`);
   }
 
   const rawMarkdown = fs.readFileSync(resolvedInput, 'utf-8');
-  const sanitizedMarkdown = sanitizeSensitiveText(rawMarkdown);
+  let preparedMarkdown = sanitizeSensitiveText(rawMarkdown);
+  let preparedTitle = sanitizeSensitiveText(title || '');
   const baseDir = path.dirname(resolvedInput);
+
+  if (isExecutive) {
+    preparedMarkdown = stripTechnicalMarkdownForExecutive(preparedMarkdown);
+  }
+
+  let sanitizedAiMatches = 0;
+  if (resolvedAiGuard === 'sanitize') {
+    const mdRes = sanitizeForbiddenAiTerms(preparedMarkdown);
+    const titleRes = sanitizeForbiddenAiTerms(preparedTitle);
+    preparedMarkdown = mdRes.text;
+    preparedTitle = titleRes.text;
+    sanitizedAiMatches = mdRes.matches.length + titleRes.matches.length;
+  } else {
+    if (preparedTitle) {
+      assertNoForbiddenAiReferences(preparedTitle, { contextLabel: 'título do PDF' });
+    }
+    assertNoForbiddenAiReferences(preparedMarkdown, {
+      contextLabel: path.basename(resolvedInput),
+    });
+  }
 
   const companionData = loadCompanionData(resolvedInput, type);
   const resolvedType = companionData.type;
@@ -1748,17 +1910,26 @@ export async function renderMarkdownToPdf({
   const stats = {
     embeddedImages: 0,
     missingImages: 0,
-    markdownBytes: Buffer.byteLength(sanitizedMarkdown, 'utf-8'),
+    sanitizedAiMatches,
+    markdownBytes: Buffer.byteLength(preparedMarkdown, 'utf-8'),
   };
 
   const generatedAt = new Date();
-  const { docTitle } = extractDocumentMetadata(sanitizedMarkdown, companionData, title, resolvedType);
+  const { docTitle } = extractDocumentMetadata(
+    preparedMarkdown,
+    companionData,
+    preparedTitle,
+    resolvedType,
+    resolvedAudience
+  );
 
   const html = buildPdfHtml({
-    markdown: sanitizedMarkdown,
+    markdown: preparedMarkdown,
     baseDir,
     title: docTitle,
     type: resolvedType,
+    audience: resolvedAudience,
+    aiGuard: resolvedAiGuard,
     companionData,
     generatedAt,
     stats,
@@ -1773,6 +1944,8 @@ export async function renderMarkdownToPdf({
     return {
       ok: true,
       mode: 'html-only',
+      audience: resolvedAudience,
+      aiGuard: resolvedAiGuard,
       htmlPath,
       pdfPath: null,
       type: resolvedType,
@@ -1780,8 +1953,13 @@ export async function renderMarkdownToPdf({
     };
   }
 
-  const typeLabel =
-    resolvedType === 'e2e'
+  const typeLabel = isExecutive
+    ? resolvedType === 'e2e'
+      ? 'Validação do Sistema'
+      : resolvedType === 'docs'
+        ? 'Guia do Sistema'
+        : 'Relatório Executivo'
+    : resolvedType === 'e2e'
       ? 'Testes E2E • Playwright'
       : resolvedType === 'docs'
         ? 'Documentação de Sistema • Playwright'
@@ -1803,6 +1981,7 @@ export async function renderMarkdownToPdf({
       title: docTitle,
       typeLabel,
       generatedAtLabel,
+      audience: resolvedAudience,
     });
 
     const tmpHtmlFile = path.join(
@@ -1870,6 +2049,8 @@ export async function renderMarkdownToPdf({
         ok: true,
         mode: 'pdf',
         engine: 'playwright-api',
+        audience: resolvedAudience,
+        aiGuard: resolvedAiGuard,
         pdfPath: resolvedOutput,
         htmlPath: null,
         type: resolvedType,
@@ -1896,6 +2077,7 @@ export async function renderMarkdownToPdf({
       title: docTitle,
       typeLabel,
       generatedAtLabel,
+      audience: resolvedAudience,
     });
     for (const chromiumBin of chromiumCandidates) {
       try {
@@ -1913,6 +2095,8 @@ export async function renderMarkdownToPdf({
           ok: true,
           mode: 'pdf',
           engine: 'chromium-cli',
+          audience: resolvedAudience,
+          aiGuard: resolvedAiGuard,
           executablePath: chromiumBin,
           pdfPath: resolvedOutput,
           htmlPath: null,

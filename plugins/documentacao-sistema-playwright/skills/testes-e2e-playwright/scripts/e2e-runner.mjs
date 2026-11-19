@@ -25,6 +25,10 @@ import {
   waitForPageStable,
 } from '../../../lib/playwright-config.mjs';
 import { renderMarkdownToPdf } from '../../../lib/pdf-renderer.mjs';
+import {
+  normalizeAiGuardMode,
+  normalizeAudienceProfile,
+} from '../../../lib/content-guardrails.mjs';
 
 export function pad2(num) {
   return String(num).padStart(2, '0');
@@ -586,6 +590,8 @@ Opções:
   --headless <true|false>    Modo headless (padrão: true)
   --headed                   Atalho para executar com navegador visível
   --timeout <ms>             Timeout padrão de navegação (padrão: ${PLAYWRIGHT_DEFAULTS.navigationTimeout})
+  --audience <tech|exec>     Público-alvo do PDF gerado: technical ou executive (padrão: technical)
+  --ai-guard <strict|sanit.> Política Zero Referência a IA no PDF: strict ou sanitize (padrão: strict)
   --no-pdf                   Desativa a geração automática de relatorio-testes.pdf ao final
   --help, -h                 Exibe esta ajuda
 `);
@@ -646,6 +652,8 @@ export async function runCli(argv = process.argv.slice(2)) {
     : cli.getBool('headless', PLAYWRIGHT_DEFAULTS.headless);
   const navigationTimeout = cli.getNumber('timeout', PLAYWRIGHT_DEFAULTS.navigationTimeout);
   const generatePdf = cli.getBool('no-pdf', false) ? false : cli.getBool('pdf', true);
+  const pdfAudience = normalizeAudienceProfile(cli.get('audience', 'technical'), 'technical') || 'technical';
+  const pdfAiGuard = normalizeAiGuardMode(cli.get('ai-guard', 'strict'), 'strict') || 'strict';
 
   console.log('==> Iniciando execução de testes E2E com Playwright...');
   console.log(`    Branch / Escopo: ${gitCtx.branchName} (base: ${gitCtx.baseBranch})`);
@@ -893,12 +901,16 @@ export async function runCli(argv = process.argv.slice(2)) {
 
   let pdfPath = null;
   if (generatePdf) {
-    const targetPdfPath = path.join(outputDir, 'relatorio-testes.pdf');
+    const pdfFilename =
+      pdfAudience === 'executive' ? 'relatorio-testes-executivo.pdf' : 'relatorio-testes.pdf';
+    const targetPdfPath = path.join(outputDir, pdfFilename);
     try {
       const pdfResult = await renderMarkdownToPdf({
         inputPath: reportPath,
         outputPath: targetPdfPath,
         type: 'e2e',
+        audience: pdfAudience,
+        aiGuard: pdfAiGuard,
         title: evidence.meta.title,
         timeout: navigationTimeout,
       });

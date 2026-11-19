@@ -66,13 +66,17 @@ Sempre que o usuário solicitar testes E2E da branch atual ou de uma implementa�
 
 Sempre que gerar ou atualizar relatórios PDF a partir de Markdown com evidências:
 
-1. **Acionamento por Fluxo**:
-   - **Automático** ao concluir `testes-e2e-playwright` ➔ `./docs/testes/<slug-da-branch>/relatorio-testes.pdf`.
-   - **Opcional / Sob Demanda** para `documentacao-sistema-playwright` ➔ `./docs-sistema/documentacao-sistema.pdf` ou qualquer relatório Markdown indicado pelo usuário (`/relatorio-pdf`).
-2. **Motor Compartilhado e Zero Dependências Extras**:
-   - Utilize `lib/pdf-renderer.mjs` / `scripts/pdf-runner.mjs` com `page.pdf()` nativo do Chromium do Playwright (formato A4, tema **Executivo Clean**, cards KPI, badges SVG vetoriais e cabeçalho/rodapé paginado).
-3. **Integridade de Imagens e Fallback**:
-   - Incorpore screenshots locais como Data URI Base64 respeitando o diretório base do relatório (sem path traversal) e mantenha `break-inside: avoid` em figuras e blocos de erro.
-   - Se o binário do Chromium não estiver disponível no Node CLI, entregue o fallback `.print.html` autocontido pronto para impressão A4 e informe claramente ao usuário.
-4. **Sanitização Obrigatória**:
-   - Aplique `sanitizeSensitiveText()` antes da renderização para impedir vazamento de senhas, tokens Bearer/JWT, cookies ou dados pessoais no PDF ou `.print.html`.
+1. **Pergunta Obrigatória de Público Antes de Gerar o PDF**:
+   - Caso o usuário ainda não tenha informado para quem o PDF se destina, pergunte antes de emitir o arquivo: **Público Técnico** (`--audience technical`) ou **Público Não Técnico / Executivo** (`--audience executive`).
+   - **Público Técnico**: preserva os detalhes técnicos do relatório original (`relatorio-testes.pdf` / `documentacao-sistema.pdf`).
+   - **Público Não Técnico / Executivo**: preserva o `.md` técnico original intacto, cria uma versão adaptada em linguagem clara de negócio (`*-executivo.md` / `*-executiva.md`) sem jargão de programação (sem códigos, stack traces, status HTTP crus, nomes de arquivos de código ou termos de Git) e gera o PDF com `--audience executive`.
+2. **Política Inviolável — Zero Referência a IA**:
+   - Nunca, em hipótese alguma, inclua no conteúdo, cabeçalhos, rodapés ou metadados dos relatórios/PDFs qualquer referência a sistemas de inteligência artificial, provedores ou plataformas (`Claude`, `Anthropic`, `OpenAI`, `ChatGPT`, `GPT`, `Gemini`, `Antigravity`, `Cursor`, `Copilot`, `DeepSeek`, `Llama`, `Mistral`, etc.), nem termos relacionados a `IA`, `I.A.`, `AI`, `LLM`, `agentes`, `subagentes`, `prompts` ou `chatbots`.
+   - O verificador determinístico em `lib/content-guardrails.mjs` (`--ai-guard strict` por padrão) valida o texto linha a linha antes de gerar o PDF e bloqueia a emissão se detectar qualquer violação.
+3. **Acionamento por Fluxo**:
+   - **Automático** ao concluir `testes-e2e-playwright` ➔ aciona `relatorio-pdf-playwright` após gravar `relatorio-testes.md`.
+   - **Opcional / Sob Demanda** para `documentacao-sistema-playwright` ou qualquer relatório Markdown indicado pelo usuário (`/relatorio-pdf`).
+4. **Motor Compartilhado, Imagens e Fallback**:
+   - Utilize `lib/pdf-renderer.mjs` / `scripts/pdf-runner.mjs` (formato A4, tema **Executivo Clean**, cards KPI adaptados ao público, badges SVG vetoriais e cabeçalho/rodapé paginado).
+   - Incorpore screenshots locais como Data URI Base64 respeitando o diretório base (sem path traversal), mantenha `break-inside: avoid` em figuras e blocos de erro e aplique `sanitizeSensitiveText()` antes da renderização.
+   - Se nenhum navegador Chromium/Chrome estiver disponível no ambiente, entregue o fallback `.print.html` autocontido pronto para impressão A4 e informe claramente ao usuário.

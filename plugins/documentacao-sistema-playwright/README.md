@@ -29,12 +29,13 @@ Plugin universal para **Google Antigravity**, **Cursor**, **Claude Code**, **Bit
 - **PDF Automático ao Concluir**: Ao terminar `relatorio-testes.md`, aciona automaticamente `relatorio-pdf-playwright` para gerar `relatorio-testes.pdf` na mesma pasta (`--no-pdf` para desativar no CLI).
 
 ### Exportação Editorial em PDF (`relatorio-pdf-playwright`)
-- **Zero Dependências Externas**: Utiliza `page.pdf()` nativo do Chromium do Playwright em [lib/pdf-renderer.mjs](./lib/pdf-renderer.mjs).
-- **Tema Executivo Clean (A4)**: Cabeçalho institucional escuro, barra de metadados, cards executivos de KPI (`evidencias.json` / `inventory.json`), badges vetoriais SVG (sem emoji quebrado em Linux), tabelas com `<thead>` repetido e `break-inside: avoid` em prints e diagnósticos.
-- **Autocontido + Fallback Resiliente**: Incorpora imagens locais em Base64 com proteção anti *path-traversal*, aplica `sanitizeSensitiveText()` e gera fallback `.print.html` caso o binário do Chromium não esteja disponível no CLI.
+- **Seleção Obrigatória de Público Antes de Gerar**: Pergunta se o PDF será destinado a **Público Técnico** (`--audience technical`, mantendo logs/arquivos/diagnóstico de dev) ou **Público Não Técnico / Executivo** (`--audience executive`, gerando uma versão em linguagem clara de negócio sem jargão de programação e preservando o `.md` técnico original intacto).
+- **Política Inviolável Zero Referência a IA (`lib/content-guardrails.mjs`)**: Auditor determinístico (`--ai-guard strict` por padrão) que bloqueia qualquer menção a sistemas de IA, provedores, modelos, agentes, LLMs, prompts ou chatbots antes da emissão do PDF — sem falsos positivos em palavras comuns do português.
+- **Zero Dependências Externas**: Utiliza `page.pdf()` nativo do Chromium do Playwright em [lib/pdf-renderer.mjs](./lib/pdf-renderer.mjs) (com cascata automática para Chrome/Chromium local e fallback `.print.html`).
+- **Tema Executivo Clean (A4)**: Cabeçalho institucional escuro, barra de metadados, cards executivos de KPI adaptados ao público (`evidencias.json` / `inventory.json`), badges vetoriais SVG (sem emoji quebrado em Linux), tabelas com `<thead>` repetido e `break-inside: avoid` em prints e diagnósticos.
 
 ### Base Compartilhada do Playwright
-- **Módulos Reutilizáveis em `lib/`**: [lib/playwright-config.mjs](./lib/playwright-config.mjs) (sessão Chromium `1440×900`, `networkidle`, timeouts, `storageState`, sanitização e telemetria) e [lib/pdf-renderer.mjs](./lib/pdf-renderer.mjs) (motor editorial HTML5 + PDF).
+- **Módulos Reutilizáveis em `lib/`**: [lib/playwright-config.mjs](./lib/playwright-config.mjs) (sessão Chromium `1440×900`, `networkidle`, timeouts, `storageState`, sanitização e telemetria), [lib/content-guardrails.mjs](./lib/content-guardrails.mjs) (guardrail Anti-IA e perfis de audiência) e [lib/pdf-renderer.mjs](./lib/pdf-renderer.mjs) (motor editorial HTML5 + PDF).
 - **Compatibilidade Universal**: Next.js, React, Vue, Angular, Svelte, Django, Rails, Laravel, Spring Boot e qualquer aplicação web.
 
 ---

@@ -1,98 +1,148 @@
 ---
 name: relatorio-pdf-playwright
 description: >-
-  Gera relatórios e catálogos técnicos em PDF editorial A4 (estilo Executivo Clean)
+  Gera relatórios e guias de sistema em PDF editorial A4 (estilo Executivo Clean)
   a partir de relatórios de testes E2E (`relatorio-testes.md`), documentação de
   sistema (`docs-sistema/index.md`) ou qualquer documento Markdown com screenshots,
-  usando Playwright Chromium sem dependências extras. Acionada automaticamente ao
-  finalizar `testes-e2e-playwright` ou sob demanda quando o usuário pedir para
-  exportar/converter relatório ou documentação para PDF (`/relatorio-pdf`).
+  adaptando o conteúdo para Público Técnico ou Público Não Técnico / Executivo e
+  aplicando a Política Zero Referência a IA. Acionada automaticamente ao finalizar
+  `testes-e2e-playwright` ou sob demanda (`/relatorio-pdf`).
 license: MIT
 metadata:
   author: Marcelo Caldas
-  version: "1.0"
+  version: "1.3"
 ---
 
-# Exportação Editorial em PDF com Playwright 📄
+# Exportação Editorial em PDF (`relatorio-pdf-playwright`) 📄
 
-Esta skill converte relatórios Markdown com evidências visuais em documentos **PDF A4 prontos para diretoria, auditoria, anexos de PR e clientes**, utilizando exclusivamente o motor nativo `page.pdf()` do **Playwright Chromium** compartilhado pelo plugin:
-
-- **Acionamento automático pós-E2E**: gera `./docs/testes/<slug-da-branch>/relatorio-testes.pdf` ao final da bateria de testes E2E.
-- **Uso avulso sob demanda**: converte relatórios anteriores (`relatorio-testes.md`), catálogos de telas (`./docs-sistema/index.md` ➔ `documentacao-sistema.pdf`) ou qualquer Markdown técnico com prints.
-- **Layout Executivo Clean**: cabeçalho institucional escuro, barra de metadados, cards executivos de KPI, badges vetoriais SVG (independentes de fontes de emoji do sistema operacional), tabelas com cabeçalho repetido entre páginas e controle inteligente de quebras (`break-inside: avoid`).
-- **Autocontido e seguro**: embute screenshots locais em Base64 validando caminhos contra *path traversal* e aplica `sanitizeSensitiveText()` antes da renderização.
+Esta skill converte relatórios Markdown com evidências visuais em documentos **PDF A4 editoriais (estilo Executivo Clean)** utilizando o motor nativo `page.pdf()` do Chromium compartilhado pelo plugin, com suporte a dois perfis de leitura (**Técnico** e **Não Técnico / Executivo**) e auditoria estrita **Zero Referência a IA**.
 
 ---
 
-## 🔄 Modos de Acionamento
+## 🛑 Passo 0 Obrigatório — Definir o Público Antes de Gerar o PDF
 
-### 1. Automático ao Concluir `testes-e2e-playwright` (Padrão)
-Sempre que a skill `testes-e2e-playwright` finalizar a gravação de `./docs/testes/<slug-da-branch>/relatorio-testes.md` (seja via agente interativo MCP ou pelo `e2e-runner.mjs`), gere em seguida o PDF correspondente na mesma pasta:
+Sempre que esta skill for acionada (seja no handoff pós-testes E2E, na exportação da documentação do sistema ou via `/relatorio-pdf`), **verifique se o usuário já informou para quem é o PDF**.
 
-- **Entrada**: `./docs/testes/<slug-da-branch>/relatorio-testes.md` (+ `evidencias.json` se existir).
-- **Saída padrão**: `./docs/testes/<slug-da-branch>/relatorio-testes.pdf`.
-- **Desativação opcional**: só pule a geração do PDF se o usuário pedir explicitamente apenas Markdown ou passar `--no-pdf` no CLI.
+Caso o público ainda **não** tenha sido especificado na conversa ou via flag `--audience`, **pergunte obrigatoriamente antes de gerar o PDF**:
 
-### 2. Sob Demanda na Documentação de Sistema (`documentacao-sistema-playwright`)
-Quando o usuário pedir a documentação em PDF, invocar `/relatorio-pdf` sobre `./docs-sistema/index.md` ou passar `--pdf` no `doc-runner.mjs`:
-
-- **Entrada**: `./docs-sistema/index.md` (+ `inventory.json` se existir).
-- **Saída padrão**: `./docs-sistema/documentacao-sistema.pdf`.
-
-### 3. Conversão Avulsa de Qualquer Relatório Existente
-Quando o usuário apontar qualquer arquivo `.md` existente no projeto:
-1. Identifique o arquivo Markdown alvo (ou localize o relatório mais recente em `./docs/testes/` ou `./docs-sistema/` caso não tenha sido especificado).
-2. Execute o `pdf-runner.mjs` passando `--input <arquivo.md>`.
-3. Informe o caminho final do `.pdf` gerado, tamanho do arquivo e quantidade de screenshots incorporados.
+> *"Antes de gerar o PDF, para qual público este relatório será destinado?*
+> *1. **Público Técnico** (desenvolvedores / QA — mantém rotas, arquivos, logs e diagnóstico técnico)*
+> *2. **Público Não Técnico / Executivo** (gestores, clientes, diretoria — linguagem simples de alto nível, sem jargão de programação e sem nenhuma referência a IA)"*
 
 ---
 
-## 💻 Execução via CLI (`scripts/pdf-runner.mjs`)
+## 🚫 Política Inviolável — Zero Referência a IA
 
-Utilize o script dedicado da skill (que consome o motor compartilhado em [lib/pdf-renderer.mjs](../../lib/pdf-renderer.mjs)):
+Em **qualquer** documento gerado (especialmente para público executivo/cliente, mas auditado em todos os modos por `lib/content-guardrails.mjs`):
+
+- **Proibição absoluta**: nunca inclua menções a sistemas de inteligência artificial, provedores, modelos ou plataformas (`Claude`, `Anthropic`, `OpenAI`, `ChatGPT`, `GPT`, `Gemini`, `Antigravity`, `Cursor`, `Copilot`, `Perplexity`, `DeepSeek`, `Llama`, `Mistral`, `Grok`, `Vertex AI`, `Bedrock`, `Ollama`, `LangChain`, etc.) nem termos correlatos (`IA`, `I.A.`, `AI`, `LLM`, `inteligência artificial`, `agente`, `subagente`, `chatbot`, `prompt`, `modelo de linguagem`).
+- **Bloqueio determinístico (`--ai-guard strict`)**: o `pdf-runner.mjs` audita o texto linha a linha antes de renderizar. Se detectar qualquer termo proibido, aborta a emissão apontando a linha e o trecho exato para correção imediata.
+
+---
+
+## 🧭 Fluxos de Execução por Público
+
+### Fluxo 1 — Público Técnico (`--audience technical`)
+
+Indicado para desenvolvedores, arquitetos, QA e anexos técnicos de Pull Request:
+1. Preserva integralmente o relatório técnico original (`relatorio-testes.md` ou `docs-sistema/index.md`) com rotas, arquivos alterados, status HTTP, logs de console e sugestões de código.
+2. Garante que o texto esteja livre de referências a IA e de dados sensíveis.
+3. Executa diretamente o gerador:
+   ```bash
+   node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
+     --input "./docs/testes/<slug-da-branch>/relatorio-testes.md" \
+     --audience technical
+   ```
+   - Saída padrão: `relatorio-testes.pdf` (ou `documentacao-sistema.pdf` para `docs-sistema/index.md`).
+
+---
+
+### Fluxo 2 — Público Não Técnico / Executivo (`--audience executive`)
+
+Indicado para diretoria, gestores de negócio, clientes finais, homologação funcional e apresentações institucionais:
+
+#### Passo 1 — Preservar o Original e Criar o Markdown Executivo
+- **Nunca sobrescreva** o `.md` técnico original (`relatorio-testes.md` ou `docs-sistema/index.md`).
+- Crie um arquivo dedicado na mesma pasta:
+  - Testes: `./docs/testes/<slug-da-branch>/relatorio-testes-executivo.md`
+  - Documentação: `./docs-sistema/documentacao-sistema-executiva.md`
+- **Mantenha todas as capturas de tela reais** (`./screenshots/...`) e a fidelidade absoluta aos resultados observados (nunca oculte falhas reais; explique-as em linguagem de negócio).
+
+#### Passo 2 — Redigir em Linguagem de Alto Nível (Para Não Programadores)
+Reescreva títulos, resumos, passos e diagnósticos substituindo todo jargão de engenharia por explicações claras do comportamento do sistema e impacto para o usuário:
+
+| Evitar (Jargão Técnico) | Usar no Modo Executivo (Linguagem Clara) |
+| :--- | :--- |
+| `Branch feat/checkout`, `Commit abc1234`, `Diff` | Entrega avaliada / Conjunto de melhorias analisadas |
+| `Testes E2E com Playwright` | Validação prática dos fluxos do sistema |
+| `Rota /pedidos/novo`, `GET / POST /api/pedidos` | Tela de Novo Pedido / Envio das informações do pedido |
+| `HTTP 500 Internal Server Error` + stack trace | O sistema apresentou uma falha interna ao tentar concluir a ação |
+| `console.error` / `pageerror` / `TypeError` | Falha interna de funcionamento detectada durante o uso da tela |
+| `input:email`, `input:password`, `select` | Campo de e-mail, campo de senha, lista de seleção |
+| `Corrigir handler em src/api/recurso.ts` | Ajustar o tratamento do formulário para orientar o usuário antes do envio |
+| `Bloqueada para merge` / `Apta para merge` | Pendente de ajustes antes da liberação / Pronta para liberação |
+
+Estrutura recomendada para `relatorio-testes-executivo.md`:
+1. **Título claro de negócio** (ex.: `# Relatório Executivo de Validação — Novo Fluxo de Pedidos`).
+2. **Bloco de contexto** sem hashes Git (`> **Escopo Avaliado:** ... | **Data:** ... | **Situação Geral:** ✅ Aprovado / ❌ Requer Ajustes`).
+3. **Resumo Executivo** explicando em poucas frases o que foi validado e qual a recomendação prática.
+4. **Quadro Resumo dos Fluxos Validados** e **Passo a Passo com Capturas de Tela** em linguagem cotidiana.
+5. **Pontos de Atenção Encontrados** (se houver falhas): *O que aconteceu na tela*, *Impacto para o usuário*, *Evidência visual* e *Ação recomendada*, sem despejar código ou stack traces.
+6. **Parecer Final de Liberação** com próximos passos objetivos.
+
+#### Passo 3 — Gerar o PDF Executivo
+```bash
+node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
+  --input "./docs/testes/<slug-da-branch>/relatorio-testes-executivo.md" \
+  --audience executive
+```
+- Saída padrão: `./docs/testes/<slug-da-branch>/relatorio-testes-executivo.pdf` (ou `./docs-sistema/documentacao-sistema-executiva.pdf`), preservando eventual PDF técnico já existente na mesma pasta. Se o usuário pedir um nome específico, informe `--out <caminho.pdf>`.
+
+---
+
+## 💻 Referência da CLI (`scripts/pdf-runner.mjs`)
 
 ```bash
-# 1. Converter relatório de testes E2E (gera relatorio-testes.pdf na mesma pasta)
+# 1. PDF Técnico de testes E2E (gera relatorio-testes.pdf)
 node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
-  --input "./docs/testes/<slug-da-branch>/relatorio-testes.md"
+  --input "./docs/testes/<slug-da-branch>/relatorio-testes.md" \
+  --audience technical
 
-# 2. Converter catálogo de documentação do sistema (gera documentacao-sistema.pdf)
+# 2. PDF Executivo para gestores/clientes (gera relatorio-testes-executivo.pdf)
 node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
-  --input "./docs-sistema/index.md" \
-  --type docs
+  --input "./docs/testes/<slug-da-branch>/relatorio-testes-executivo.md" \
+  --audience executive
 
-# 3. Converter qualquer Markdown definindo título e caminho de saída customizados
+# 3. Guia Visual Executivo do Sistema em PDF (gera documentacao-sistema-executiva.pdf)
 node plugins/documentacao-sistema-playwright/skills/relatorio-pdf-playwright/scripts/pdf-runner.mjs \
-  --input "./docs/auditoria.md" \
-  --out "./docs/auditoria-executiva.pdf" \
-  --title "Relatório de Auditoria Técnica"
+  --input "./docs-sistema/documentacao-sistema-executiva.md" \
+  --type docs \
+  --audience executive
 ```
 
-### Argumentos Suportados pelo `pdf-runner.mjs`
+### Argumentos Suportados
 - `--input <arquivo.md>`: arquivo Markdown de origem (obrigatório).
-- `--out <arquivo.pdf>`: caminho do PDF gerado (opcional; padrão automático conforme o tipo de entrada).
-- `--type <auto|e2e|docs|generic>`: força o perfil de KPIs e cabeçalhos ou detecta automaticamente (`auto` por padrão).
+- `--out <arquivo.pdf>`: caminho do PDF gerado (opcional; calculado automaticamente conforme tipo e audiência).
+- `--audience <technical|executive>`: define cabeçalhos, rodapés, cards KPI e filtros editoriais (`technical` por padrão; aceita `tecnico`, `executivo`, `nao-tecnico`).
+- `--ai-guard <strict|sanitize>`: auditoria Zero Referência a IA (`strict` bloqueia e aponta linha/termo; `sanitize` remove ocorrências automaticamente).
+- `--type <auto|e2e|docs|generic>`: perfil estrutural do documento (`auto` por padrão).
 - `--title <titulo>`: sobrescreve o título principal do cabeçalho institucional.
-- `--emit-html-only`: gera apenas `<nome>.print.html` autocontido (com CSS `@page` e imagens Base64), sem iniciar o Chromium.
-- `--timeout <ms>`: timeout máximo de carregamento/renderização (padrão: `30000`).
+- `--emit-html-only`: gera apenas `<nome>.print.html` autocontido com imagens Base64 e CSS `@page` A4.
+- `--timeout <ms>`: timeout máximo de renderização no navegador (padrão: `30000`).
 
 ---
 
-## 🛟 Fallback Resiliente (`--emit-html-only`)
+## 🛟 Fallback Resiliente (`.print.html`)
 
-Se o ambiente onde o comando está sendo executado não tiver o binário do Chromium instalado no momento:
-1. O motor grava automaticamente um arquivo `<nome>.print.html` 100% autocontido (todas as imagens já convertidas em Data URI Base64 e regras `@page` A4 configuradas).
-2. Informe ao usuário o caminho do `.print.html` gerado e as duas opções imediatas:
-   - Instalar o navegador (`npm install -D playwright && npx playwright install chromium`) e reexecutar o `pdf-runner.mjs`; ou
-   - Abrir o `.print.html` diretamente no Chrome/Edge e acionar **Imprimir ➔ Salvar como PDF**.
+Se o ambiente não possuir um binário local do Chromium/Chrome disponível no momento da execução, o motor grava automaticamente `<nome>.print.html` 100% autocontido (imagens em Base64 + paginação A4). Basta abrir o arquivo no navegador e acionar **Imprimir ➔ Salvar como PDF**, ou instalar o Chromium (`npx playwright install chromium`) e reexecutar.
 
-Para detalhes completos da tipografia, margens A4, paleta de cores, cards de KPI e regras de paginação, consulte **[references/pdf-layout-spec.md](./references/pdf-layout-spec.md)**.
+Consulte **[references/pdf-layout-spec.md](./references/pdf-layout-spec.md)** para a especificação visual completa, comparativo de cabeçalhos/KPIs entre os perfis e regras detalhadas de paginação.
 
 ---
 
-## 🛡️ Checklist de Qualidade e Segurança
+## 🛡️ Checklist de Qualidade e Conformidade
 
-- [ ] **Sanitização Garantida**: Nenhum token Bearer/JWT, senha, cookie ou segredo pode vazar para o PDF ou para o `.print.html`.
-- [ ] **Imagens Locais Verificadas**: Confirme no log do `pdf-runner.mjs` que `imagens ausentes=0` (todos os screenshots de `./screenshots/` foram embutidos com sucesso).
-- [ ] **Sem Emojis Quebrados**: Status `✅ Passou` / `❌ Falhou` são renderizados com badges vetoriais SVG nítidos em qualquer SO (Linux headless, macOS ou Windows).
-- [ ] **Paginação Limpa**: Tabelas repetem `<thead>` ao quebrar página e screenshots/diagnósticos `ERR-XX` mantêm legenda e imagem agrupadas sem cortes abruptos.
+- [ ] **Público Confirmado**: O público-alvo (`technical` vs `executive`) foi confirmado com o usuário antes da geração.
+- [ ] **Zero Referência a IA**: Nenhuma menção a IA, provedores, modelos, agentes, LLMs, prompts ou chatbots existe no texto, títulos, cabeçalhos ou rodapés (`guarda-ia=strict` aprovado sem violações).
+- [ ] **Adequação de Linguagem (Modo Executivo)**: Nenhum código-fonte, stack trace, status HTTP cru, rota técnica ou jargão de Git permaneceu visível para leitores não programadores, e o `.md` técnico original foi mantido intacto.
+- [ ] **Sanitização e Imagens Íntegras**: Nenhum segredo/token vazou e o resumo do CLI confirmou `imagens ausentes=0`.
