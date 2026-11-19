@@ -38,8 +38,8 @@
     {
       "name": "documentacao-sistema-playwright",
       "source": "./plugins/documentacao-sistema-playwright",
-      "description": "Gera documentação técnica completa de sistemas web com menu navegável, sumário tabular, screenshots full page e inventário de telas usando Playwright.",
-      "version": "1.0.0",
+      "description": "Gera documentação técnica completa de sistemas web e executa testes E2E de branches/implementações com Playwright, prints padronizados, monitoramento de erros e relatórios em Markdown.",
+      "version": "1.1.0",
       "author": {
         "name": "Marcelo Caldas",
         "url": "https://github.com/marcelocaldasdevops"
@@ -49,6 +49,11 @@
       "keywords": [
         "playwright",
         "documentation",
+        "e2e",
+        "testing",
+        "qa",
+        "gherkin",
+        "bug-report",
         "screenshots",
         "menu",
         "summary",

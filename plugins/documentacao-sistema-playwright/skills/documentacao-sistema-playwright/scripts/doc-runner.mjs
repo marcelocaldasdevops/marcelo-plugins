@@ -10,21 +10,47 @@
 
 import fs from 'fs';
 import path from 'path';
+import {
+  PLAYWRIGHT_DEFAULTS,
+  createBrowserSession,
+  parseCliArgs,
+  slugify,
+} from '../../../lib/playwright-config.mjs';
 
-// Parse de argumentos simples
-const args = process.argv.slice(2);
-function getArg(name, defaultValue = null) {
-  const idx = args.indexOf(name);
-  if (idx !== -1 && args[idx + 1]) {
-    return args[idx + 1];
-  }
-  return defaultValue;
+// Parse de argumentos reutilizando a configuração compartilhada do plugin
+const cli = parseCliArgs(process.argv.slice(2));
+
+if (cli.getBool('help', false)) {
+  console.log(`Uso:
+  node doc-runner.mjs --url "http://localhost:3000" [opções]
+
+Opções:
+  --url <url>                URL base inicial (obrigatório)
+  --out <dir>                Diretório de destino (padrão: ./docs-sistema)
+  --routes <r1,r2>           Lista explícita de rotas separadas por vírgula
+  --title <titulo>           Título do documento principal
+  --storage-state <arquivo>  JSON de storageState/cookies para sessão autenticada
+  --headless <true|false>    Modo headless (padrão: true)
+  --headed                   Atalho para executar com navegador visível
+  --timeout <ms>             Timeout de navegação em ms (padrão: ${PLAYWRIGHT_DEFAULTS.navigationTimeout})
+`);
+  process.exit(0);
 }
 
-const baseUrl = getArg('--url');
-const outputDir = path.resolve(getArg('--out', './docs-sistema'));
-const explicitRoutes = getArg('--routes') ? getArg('--routes').split(',').map(r => r.trim()) : null;
-const docTitle = getArg('--title', 'Documentação do Sistema');
+const baseUrl = cli.get('url');
+const outputDir = path.resolve(cli.get('out', './docs-sistema'));
+const explicitRoutes = cli.get('routes')
+  ? String(cli.get('routes'))
+      .split(',')
+      .map((r) => r.trim())
+      .filter(Boolean)
+  : null;
+const docTitle = cli.get('title', 'Documentação do Sistema');
+const storageState = cli.get('storage-state');
+const headless = cli.getBool('headed', false)
+  ? false
+  : cli.getBool('headless', PLAYWRIGHT_DEFAULTS.headless);
+const navigationTimeout = cli.getNumber('timeout', PLAYWRIGHT_DEFAULTS.navigationTimeout);
 
 if (!baseUrl) {
   console.error('Erro: Parâmetro --url é obrigatório.');
@@ -32,39 +58,28 @@ if (!baseUrl) {
   process.exit(1);
 }
 
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'tela';
-}
-
 async function run() {
   console.log(`==> Iniciando documentação com Playwright...`);
   console.log(`    URL Base: ${baseUrl}`);
   console.log(`    Diretório de Saída: ${outputDir}`);
 
-  // Tenta carregar playwright
-  let chromium;
-  try {
-    const pw = await import('playwright');
-    chromium = pw.chromium;
-  } catch (err) {
-    console.error(`Erro: O pacote 'playwright' não está instalado globalmente ou neste projeto.`);
-    console.error(`Instale executando: npm install -D playwright`);
-    process.exit(1);
-  }
-
   const screenshotsDir = path.join(outputDir, 'screenshots');
   fs.mkdirSync(screenshotsDir, { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 }
-  });
-  const page = await context.newPage();
+  let browser;
+  let page;
+  try {
+    const session = await createBrowserSession({
+      headless,
+      storageState,
+      navigationTimeout,
+    });
+    browser = session.browser;
+    page = session.page;
+  } catch (err) {
+    console.error(`Erro: ${err.message}`);
+    process.exit(1);
+  }
 
   const visited = new Set();
   const routesToVisit = explicitRoutes ? [...explicitRoutes] : ['/'];
@@ -79,7 +94,10 @@ async function run() {
     console.log(`--> Visitando: ${fullUrl}`);
 
     try {
-      await page.goto(fullUrl, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(fullUrl, {
+        waitUntil: PLAYWRIGHT_DEFAULTS.waitUntil,
+        timeout: navigationTimeout,
+      });
     } catch (e) {
       console.warn(`    Aviso: Falha ao navegar para ${fullUrl}: ${e.message}`);
       continue;
@@ -120,11 +138,11 @@ async function run() {
       return { title, headings, buttons: [...new Set(buttons)], inputs: [...new Set(inputs)], hasTable };
     });
 
-    const slug = slugify(route === '/' ? 'inicio' : route);
+    const slug = slugify(route === '/' ? 'inicio' : route, 'tela');
     const screenshotFilename = `${slug}.png`;
     const screenshotPath = path.join(screenshotsDir, screenshotFilename);
 
-    await page.screenshot({ path: screenshotPath, fullPage: true });
+    await page.screenshot({ path: screenshotPath, fullPage: PLAYWRIGHT_DEFAULTS.screenshotFullPage });
 
     inventory.push({
       num: inventory.length + 1,
