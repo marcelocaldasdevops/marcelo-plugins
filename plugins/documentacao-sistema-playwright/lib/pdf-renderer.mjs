@@ -802,7 +802,11 @@ function extractDocumentMetadata(
 }
 
 function computeKpiCards(markdown, resolvedType, companionData, audience = 'technical') {
-  const isExecutive = audience === 'executive';
+  // No modo executivo, não renderiza a grade de cards KPI no topo do PDF
+  if (audience === 'executive') {
+    return [];
+  }
+
   const ev = companionData?.evidencias || null;
   const inv = companionData?.inventory || null;
   const text = String(markdown || '');
@@ -858,38 +862,6 @@ function computeKpiCards(markdown, resolvedType, companionData, audience = 'tech
     const approvalRate =
       totalScenarios > 0 ? `${Math.round((passedScenarios / totalScenarios) * 100)}%` : 'N/A';
     const overallApproved = totalScenarios > 0 && failedScenarios === 0 && totalErrors === 0;
-
-    if (isExecutive) {
-      return [
-        {
-          label: 'Fluxos Validados',
-          value: String(totalScenarios),
-          sub: `Taxa de aprovação: ${approvalRate}`,
-          tone: 'neutral',
-        },
-        {
-          label: 'Aprovados',
-          value: String(passedScenarios),
-          sub: 'Fluxos funcionando conforme esperado',
-          tone: 'success',
-        },
-        {
-          label: 'Pontos de Atenção',
-          value: String(failedScenarios),
-          sub: failedScenarios === 0 ? 'Nenhum impedimento encontrado' : 'Requer ajuste antes da liberação',
-          tone: failedScenarios > 0 ? 'danger' : 'success',
-        },
-        {
-          label: 'Situação da Entrega',
-          value: totalScenarios === 0 ? 'Informativo' : overallApproved ? 'Pronta' : 'Requer Ajustes',
-          sub:
-            totalErrors === 0
-              ? 'Nenhuma ocorrência registrada'
-              : `${totalErrors} ocorrência(s) para revisão`,
-          tone: totalScenarios === 0 ? 'neutral' : overallApproved ? 'success' : 'danger',
-        },
-      ];
-    }
 
     return [
       {
@@ -954,35 +926,6 @@ function computeKpiCards(markdown, resolvedType, companionData, audience = 'tech
       }
     } else {
       totalInputs = (text.match(/\(input:|textarea|select\)/gi) || []).length;
-    }
-
-    if (isExecutive) {
-      return [
-        {
-          label: 'Telas Apresentadas',
-          value: String(totalScreens),
-          sub: 'Visão navegável do sistema',
-          tone: 'neutral',
-        },
-        {
-          label: 'Capturas de Tela',
-          value: String(totalScreenshots),
-          sub: 'Imagens reais das interfaces',
-          tone: 'success',
-        },
-        {
-          label: 'Campos da Interface',
-          value: String(totalInputs),
-          sub: 'Áreas de preenchimento e consulta',
-          tone: 'neutral',
-        },
-        {
-          label: 'Situação do Guia',
-          value: totalActions > 0 ? `${totalActions} ações` : 'Completo',
-          sub: 'Conteúdo completo e atualizado',
-          tone: 'success',
-        },
-      ];
     }
 
     return [

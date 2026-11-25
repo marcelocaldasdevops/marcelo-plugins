@@ -375,18 +375,46 @@ const TECHNICAL_SECTION_HEADING_PATTERNS = [
   /\bdiagn[óo]stico\s+de\s+c[óo]digo\b/i,
 ];
 
-/**
- * Identifica títulos de seções estritamente técnicas/de código que devem ser
- * omitidas quando o PDF é renderizado no modo `executive`.
- */
-export function isTechnicalSectionHeading(headingText) {
-  const clean = String(headingText || '')
+const EXECUTIVE_SIGNOFF_HEADING_PATTERNS = [
+  /\bparecer\s+(?:final|de\s+libera[çc][ãa]o|de\s+homologa[çc][ãa]o|executivo|t[ée]cnico)\b/i,
+  /\bpr[óo]ximos?\s+passos?(?:\s+recomendados?)?\b/i,
+  /\bconclus[ãa]o(?:\s+e\s+recomenda[çc][õo]es|\s+geral|\s+final)?\b/i,
+  /\brecomenda[çc][õo]es\s+(?:finais|de\s+libera[çc][ãa]o|de\s+publica[çc][ãa]o|para\s+homologa[çc][ãa]o)\b/i,
+];
+
+function normalizeHeadingForCheck(headingText) {
+  return String(headingText || '')
     .replace(/<[^>]+>/g, '')
     .replace(/[*_`#]/g, '')
+    .replace(/^\s*\d+(?:\.\d+)*[.)-]?\s*/, '')
     .trim();
+}
+
+/**
+ * Identifica títulos de seções estritamente técnicas/de código.
+ */
+export function isTechnicalSectionHeading(headingText) {
+  const clean = normalizeHeadingForCheck(headingText);
   if (!clean) return false;
   return TECHNICAL_SECTION_HEADING_PATTERNS.some((rx) => rx.test(clean));
 }
+
+/**
+ * Identifica títulos de seções que devem ser omitidas no modo `executive`:
+ * - Seções técnicas/código (`isTechnicalSectionHeading`);
+ * - Seções de parecer final de liberação, conclusão e próximos passos de publicação/homologação.
+ */
+export function isOmittedExecutiveSectionHeading(headingText) {
+  const clean = normalizeHeadingForCheck(headingText);
+  if (!clean) return false;
+  return (
+    TECHNICAL_SECTION_HEADING_PATTERNS.some((rx) => rx.test(clean)) ||
+    EXECUTIVE_SIGNOFF_HEADING_PATTERNS.some((rx) => rx.test(clean))
+  );
+}
+
+const OMITTED_EXECUTIVE_ANCHOR_RE =
+  /^#(?:conclus[aã]o(?:-|$)|parecer(?:-|$)|pr[oó]ximos-passos(?:-|$)|recomendac[oõ]es(?:-|$))/i;
 
 const INPUT_TYPE_TRANSLATIONS = Object.freeze([
   [/\(\s*input:email\s*\)/gi, '(campo de e-mail)'],
@@ -420,9 +448,9 @@ function looksLikeTechnicalCodeBlock(codeContent, fenceLang) {
 }
 
 /**
- * Adapta um Markdown técnico para renderização segura no modo `executive` caso o CLI
- * seja invocado diretamente sobre um relatório bruto:
- * - Remove seções puramente de código (`isTechnicalSectionHeading`);
+ * Adapta um Markdown para renderização limpa no modo `executive`:
+ * - Remove seções técnicas de código e seções de parecer final / conclusão / próximos passos (`isOmittedExecutiveSectionHeading`);
+ * - Remove itens de menu navegável que apontem para seções omitidas;
  * - Omite blocos cercados de stack trace, HTTP cru e logs técnicos;
  * - Filtra metadados de Git/dev na barra inicial `>`;
  * - Traduz rótulos técnicos de campos (`input:password`, `select`) e menções a Playwright/E2E.
@@ -439,7 +467,7 @@ export function stripTechnicalMarkdownForExecutive(markdown) {
     const rawLine = lines[i];
     const trimmed = rawLine.trim();
 
-    // Controle de omissão de seção técnica até o próximo heading de nível igual/superior ou divisor `---`
+    // Controle de omissão de seção até o próximo heading de nível igual/superior ou divisor `---`
     const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
       const level = headingMatch[1].length;
@@ -454,7 +482,7 @@ export function stripTechnicalMarkdownForExecutive(markdown) {
         }
       }
 
-      if (isTechnicalSectionHeading(headingText)) {
+      if (isOmittedExecutiveSectionHeading(headingText)) {
         skippedSectionLevel = level;
         i++;
         continue;
@@ -462,7 +490,16 @@ export function stripTechnicalMarkdownForExecutive(markdown) {
     } else if (skippedSectionLevel !== null) {
       if (/^(?:-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
         skippedSectionLevel = null;
-      } else {
+      }
+      i++;
+      continue;
+    }
+
+    // Remove itens de menu navegável que apontem para seções omitidas no modo executivo
+    const tocItemMatch = trimmed.match(/^(?:[-*+]|\d+\.)\s+\[([^\]]+)\]\((#[^)\s]+)\)\s*$/);
+    if (tocItemMatch) {
+      const [, linkLabel, anchorHref] = tocItemMatch;
+      if (isOmittedExecutiveSectionHeading(linkLabel) || OMITTED_EXECUTIVE_ANCHOR_RE.test(anchorHref)) {
         i++;
         continue;
       }
@@ -546,6 +583,11 @@ export function stripTechnicalMarkdownForExecutive(markdown) {
 
     out.push(adapted);
     i++;
+  }
+
+  // Remove divisores horizontais (`---`) órfãos deixados no final do documento após omissão da última seção
+  while (out.length > 0 && /^(?:\s*|-{3,}|\*{3,}|_{3,})$/.test(out[out.length - 1].trim())) {
+    out.pop();
   }
 
   return out.join('\n').replace(/\n{3,}/g, '\n\n');
